@@ -13,6 +13,10 @@ var a = function(type) {
   }
 }
 
+var formatHelp = function(name, msg) {
+  return JSON.stringify(name.replace(/\[[^\]]+\]/g, '.*')+' '+msg)
+}
+
 var types = {}
 
 types.null = function() {
@@ -69,7 +73,7 @@ var compile = function(schema) {
     if (node.required) {
       validate()
         ('if (%s === undefined) {', name)
-          ('validate.error = %s', JSON.stringify(name+' is required'))
+          ('validate.error = %s', formatHelp(name, 'is required'))
           ('return false')
         ('}')
     } else {
@@ -98,7 +102,7 @@ var compile = function(schema) {
 
       validate()
         ('if (%s) {', invalid)
-          ('validate.error = %s', JSON.stringify(name+' must be '+msg))
+          ('validate.error = %s', formatHelp(name, 'must be '+msg))
           ('return false')
         ('}')
     }
@@ -114,7 +118,7 @@ var compile = function(schema) {
 
       validate
         ('if (%s) {', invalid)
-          ('validate.error = %s', JSON.stringify(name+' must be one of ['+enm.join(', ')+']'))
+          ('validate.error = %s', formatHelp(name, 'must be one of ['+enm.join(', ')+']'))
           ('return false')
         ('}')
     }
@@ -122,7 +126,7 @@ var compile = function(schema) {
     if (node.minimum) {
       validate
         ('if (%s < %d) {', name, node.minimum)
-          ('validate.error = %s', JSON.stringify(name+' must be more than '+node.minimum))
+          ('validate.error = %s', formatHelp(name, 'must be more than '+node.minimum))
           ('return false')
         ('}')
     }
@@ -130,7 +134,7 @@ var compile = function(schema) {
     if (node.maximum) {
       validate
         ('if (%s > %d) {', name, node.maximum)
-          ('validate.error = %s', JSON.stringify(name+' must be less than '+node.maximum))
+          ('validate.error = %s', formatHelp(name, 'must be less than '+node.maximum))
           ('return false')
         ('}')
     }
@@ -142,7 +146,7 @@ var compile = function(schema) {
 
       validate
         ('if (!pattern%d.test(%s)) {', i, name)
-          ('validate.error = %s', JSON.stringify(name+' must match /'+node.pattern+'/'))
+          ('validate.error = %s', formatHelp(name, 'must match /'+node.pattern+'/'))
           ('return false')
         ('}')
     }
@@ -154,19 +158,19 @@ var compile = function(schema) {
       if (node.minItems) {
         validate
           ('if (%s.length < %d) {', name, node.minItems)
-            ('validate.error = %s', JSON.stringify(name+' must contain at least '+node.minItems+' item(s)'))
+            ('validate.error = %s', formatHelp(name, 'must contain at least '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.maxItems) {
         validate
           ('if (%s.length > %d) {', name, node.maxItems)
-            ('validate.error = %s', JSON.stringify(name+' must contain at most '+node.minItems+' item(s)'))
+            ('validate.error = %s', formatHelp(name, 'must contain at most '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.uniqueItems) {
         validate
           ('if (!unique(%s)) {', name)
-            ('validate.error = %s', JSON.stringify(name+' must only contain unique values'))
+            ('validate.error = %s', formatHelp(name, 'must only contain unique values'))
             ('return false')
           ('}')
       }
