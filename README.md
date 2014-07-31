@@ -81,7 +81,7 @@ tv4 v4 total time (703) and per document time: 0.03515
 z-schema v4 total time (3188) and per document time: 0.1594
 ```
 
-As seen above `is-my-json-valid` is 2500x faster than the slowest and ~20x faster than the fastest
+As seen above `is-my-json-valid` is 2500x faster than the slowest and ~20x faster than the second fastest
 
 ## License
 
