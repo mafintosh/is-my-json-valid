@@ -13,13 +13,11 @@ var a = function(type) {
   }
 }
 
-var defined = {}
-
-var defined = function(name) {
-  return name+' !== null && '+name+' !== undefined'
-}
-
 var types = {}
+
+types.null = function() {
+  return name+' === null'
+}
 
 types.boolean = function(name) {
   return 'typeof '+name+' === "boolean"'
@@ -30,7 +28,7 @@ types.array = function(name) {
 }
 
 types.object = function(name) {
-  return 'typeof '+name+' === "object" && !Array.isArray('+name+')'
+  return 'typeof '+name+' === "object" && '+name+' && !Array.isArray('+name+')'
 }
 
 types.number = function(name) {
@@ -70,13 +68,13 @@ var compile = function(schema) {
 
     if (node.required) {
       validate()
-        ('if (!(%s)) {', defined(name))
+        ('if (%s === undefined) {', name)
           ('validate.error = %s', JSON.stringify(name+' is required'))
           ('return false')
         ('}')
     } else {
       validate()
-        ('if (%s) {', defined(name))
+        ('if (%s !== undefined) {', name)
     }
 
     if (type) {
