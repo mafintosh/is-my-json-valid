@@ -1,0 +1,33 @@
+{
+  "name": "is-my-json-valid",
+  "version": "0.0.0",
+  "description": "A very fast JSONSchema/orderly validator",
+  "main": "index.js",
+  "dependencies": {
+    "generate-function": "^1.0.2",
+    "generate-object-property": "^1.1.0",
+    "orderly": "^1.1.0"
+  },
+  "devDependencies": {
+    "tape": "^2.13.4"
+  },
+  "scripts": {
+    "test": "tape test/validate.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mafintosh/is-my-json-valid"
+  },
+  "keywords": [
+    "json",
+    "schema",
+    "orderly",
+    "jsonschema"
+  ],
+  "author": "Mathias Buus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mafintosh/is-my-json-valid/issues"
+  },
+  "homepage": "https://github.com/mafintosh/is-my-json-valid"
+}
