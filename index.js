@@ -8,6 +8,7 @@ module.exports = function(schema) {
     try {
       schema = orderly.parse(schema)
     } catch (err) {
+      if (schema.trim()[0] !== '{') throw err
       schema = JSON.parse(schema)
     }
   }

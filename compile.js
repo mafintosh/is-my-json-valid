@@ -15,12 +15,7 @@ var a = function(type) {
 
 var defined = {}
 
-defined.boolean =
-defined.array =
-defined.number =
-defined.string =
-defined.integer =
-defined.object = function(name) {
+var defined = function(name) {
   return name+' !== null && '+name+' !== undefined'
 }
 
@@ -75,20 +70,40 @@ var compile = function(schema) {
 
     if (node.required) {
       validate()
-        ('if (!(%s)) {', defined[type](name))
+        ('if (!(%s)) {', defined(name))
           ('validate.error = %s', JSON.stringify(name+' is required'))
           ('return false')
         ('}')
     } else {
       validate()
-        ('if (%s) {', defined[type](name))
+        ('if (%s) {', defined(name))
     }
 
-    validate()
-      ('if (!(%s)) {', types[type](name))
-        ('validate.error = %s', JSON.stringify(name+' must be '+a(type)))
-        ('return false')
-      ('}')
+    if (type) {
+      var msg = [].concat(type)
+        .map(function(t) {
+          return t.type || t
+        })
+        .map(a)
+        .join(' or ')
+
+      var invalid = [].concat(type)
+        .map(function(t) {
+          return t.type || t
+        })
+        .map(function(t) {
+          return '!('+types[t](name)+')'
+        })
+        .join(' && ')
+
+      if (!invalid) invalid = 'true'
+
+      validate()
+        ('if (%s) {', invalid)
+          ('validate.error = %s', JSON.stringify(name+' must be '+msg))
+          ('return false')
+        ('}')
+    }
 
     if (enm) {
       var invalid = enm
