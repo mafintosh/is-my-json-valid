@@ -215,6 +215,7 @@ var compile = function(schema) {
     ('function validate(data) {')
       ('validate.error = ""')
 
+  schema.required = schema.required !== false
   visit('data', schema)
 
   validate()
