@@ -70,15 +70,21 @@ var compile = function(schema) {
     var type = node.type
     var enm = node.enum || (type && type.enum)
 
+    var isNullType = [].concat(type).some(function(t) {
+      return (t.type || t) === 'null'
+    })
+
     if (node.required) {
+      if (isNullType) validate('if (%s === undefined) {', name)
+      else validate('if (%s === undefined || %s === null) {', name, name)
+
       validate()
-        ('if (%s === undefined) {', name)
-          ('validate.error = %s', formatHelp(name, 'is required'))
-          ('return false')
-        ('}')
+        ('validate.error = %s', formatHelp(name, 'is required'))
+        ('return false')
+      ('}')
     } else {
-      validate()
-        ('if (%s !== undefined) {', name)
+      if (isNullType) validate('if (%s !== undefined) {', name)
+      else validate('if (%s !== undefined && %s !== null) {', name, name)
     }
 
     if (type) {
