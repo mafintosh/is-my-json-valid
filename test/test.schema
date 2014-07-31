@@ -1,0 +1,6 @@
+object {
+  union {
+    string;
+    number;
+  } name;
+}*;
