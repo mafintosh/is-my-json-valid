@@ -226,6 +226,9 @@ var compile = function(schema) {
 
   validate = validate.toFunction(scope)
   validate.error = ''
+  validate.toJSON = function() {
+    return schema
+  }
 
   return validate
 }
