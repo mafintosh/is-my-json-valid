@@ -7,6 +7,8 @@ to be extremely fast
 npm install is-my-json-valid
 ```
 
+[![build status](http://img.shields.io/travis/mafintosh/is-my-json-valid.svg?style=flat)](http://travis-ci.org/mafintosh/is-my-json-valid)
+
 ## Usage
 
 Simply pass a schema to compile it
