@@ -244,7 +244,18 @@ var compile = function(schema) {
   ('}')
 
   validate = validate.trim().toFunction(scope)
+
   validate.errors = null
+
+  validate.__defineGetter__('error', function() {
+    if (!validate.errors) return ''
+    return validate.errors
+      .map(function(err) {
+        return err.field+' '+err.message
+      })
+      .join('\n')
+  })
+
   validate.toJSON = function() {
     return schema
   }
