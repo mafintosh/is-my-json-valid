@@ -29,9 +29,9 @@ var validate = validator({
 console.log('should be valid', validate({hello: 'world'}))
 console.log('should not be valid', validate({}))
 
-// get the last error message by checking validate.error
-// the following will print "data.hello is required"
-console.log('the error was '+validate.error)
+// get the last list of errors by checking validate.errors
+// the following will print [{field: 'data.hello', message: 'is required'}]
+console.log(validate.errors)
 ```
 
 You can also pass the schema as a string

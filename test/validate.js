@@ -17,6 +17,8 @@ tape('orderly', function(t) {
     name: false
   }), 'should be invalid')
 
+  t.same(validate.errors, [{field:'data.name', message:'must be a string or a number'}])
+
   t.notOk(validate(), 'should be invalid')
 
   t.end()

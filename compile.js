@@ -88,8 +88,8 @@ var compile = function(schema) {
       else validate('if (%s === undefined || %s === null) {', name, name)
 
       validate
-        ('if (validate.error === null) validate.error = []')
-        ('validate.error.push(%s)', error('is required'))
+        ('if (validate.errors === null) validate.errors = []')
+        ('validate.errors.push(%s)', error('is required'))
       ('} else {')
     } else {
       if (isNullType) validate('if (%s !== undefined) {', name)
@@ -118,8 +118,8 @@ var compile = function(schema) {
       lvl++
       validate
         ('if (%s) {', invalid)
-          ('if (validate.error === null) validate.error = []')
-          ('validate.error.push(%s)', error('must be '+msg))
+          ('if (validate.errors === null) validate.errors = []')
+          ('validate.errors.push(%s)', error('must be '+msg))
         ('} else {')
     }
 
@@ -135,24 +135,24 @@ var compile = function(schema) {
       lvl++
       validate
         ('if (%s) {', invalid)
-          ('if (validate.error === null) validate.error = []')
-          ('validate.error.push(%s)', error('must be one of ['+enm.join(', ')+']'))
+          ('if (validate.errors === null) validate.errors = []')
+          ('validate.errors.push(%s)', error('must be one of ['+enm.join(', ')+']'))
         ('} else {')
     }
 
     if (node.minimum) {
       validate
         ('if (%s < %d) {', name, node.minimum)
-          ('if (validate.error === null) validate.error = []')
-          ('validate.error.push(%s)', error('must be more than '+node.minimum))
+          ('if (validate.errors === null) validate.errors = []')
+          ('validate.errors.push(%s)', error('must be more than '+node.minimum))
         ('}')
     }
 
     if (node.maximum) {
       validate
         ('if (%s > %d) {', name, node.maximum)
-          ('if (validate.error === null) validate.error = []')
-          ('validate.error.push(%s)', error('must be less than '+node.maximum))
+          ('if (validate.errors === null) validate.errors = []')
+          ('validate.errors.push(%s)', error('must be less than '+node.maximum))
         ('}')
     }
 
@@ -163,8 +163,8 @@ var compile = function(schema) {
 
       validate
         ('if (!pattern%d.test(%s)) {', i, name)
-          ('if (validate.error === null) validate.error = []')
-          ('validate.error.push(%s)', error('must match /'+node.pattern+'/'))
+          ('if (validate.errors === null) validate.errors = []')
+          ('validate.errors.push(%s)', error('must match /'+node.pattern+'/'))
         ('}')
     }
 
@@ -175,22 +175,22 @@ var compile = function(schema) {
       if (node.minItems) {
         validate
           ('if (%s.length < %d) {', name, node.minItems)
-            ('if (validate.error === null) validate.error = []')
-            ('validate.error.push(%s)', error('must contain at least '+node.minItems+' item(s)'))
+            ('if (validate.errors === null) validate.errors = []')
+            ('validate.errors.push(%s)', error('must contain at least '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.maxItems) {
         validate
           ('if (%s.length > %d) {', name, node.maxItems)
-            ('if (validate.error === null) validate.error = []')
-            ('validate.error.push(%s)', error('must contain at most '+node.minItems+' item(s)'))
+            ('if (validate.errors === null) validate.errors = []')
+            ('validate.errors.push(%s)', error('must contain at most '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.uniqueItems) {
         validate
           ('if (!unique(%s)) {', name)
-            ('if (validate.error === null) validate.error = []')
-            ('validate.error.push(%s)', error('must only contain unique values'))
+            ('if (validate.errors === null) validate.errors = []')
+            ('validate.errors.push(%s)', error('must only contain unique values'))
           ('}')
       }
 
@@ -213,7 +213,7 @@ var compile = function(schema) {
       validate('var keys = Object.keys(%s)', name)
         ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
           ('if (%s) {', invalid)
-            ('if (validate.error === null) validate.error = []')
+            ('if (validate.errors === null) validate.errors = []')
             ('valid.error = keys['+i+'] + " is not allowed"')
           ('}')
         ('}')
@@ -234,17 +234,17 @@ var compile = function(schema) {
 
   var validate = genfun()
     ('function validate(data) {')
-      ('validate.error = null')
+      ('validate.errors = null')
 
   schema.required = schema.required !== false
   visit('data', schema)
 
   validate()
-    ('return validate.error === null')
+    ('return validate.errors === null')
   ('}')
 
   validate = validate.trim().toFunction(scope)
-  validate.error = null
+  validate.errors = null
   validate.toJSON = function() {
     return schema
   }
