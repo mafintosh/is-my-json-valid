@@ -13,8 +13,12 @@ var a = function(type) {
   }
 }
 
-var formatHelp = function(name, msg) {
-  return JSON.stringify(name.replace(/\[[^\]]+\]/g, '.*')+' '+msg)
+var formatHelp = function(field, msg, errors) {
+  var err = {
+    field: field.replace(/\[[^\]]+\]/g, '.*'),
+    message: msg
+  }
+  return 'errors['+(errors.push(err)-1)+']'
 }
 
 var types = {}
@@ -57,7 +61,7 @@ var unique = function(array) {
 var validators = {}
 
 var compile = function(schema) {
-  var scope = {unique:unique}
+  var scope = {unique:unique, errors:[]}
 
   var vars = ['i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z']
   var loopVar = function() {
@@ -69,6 +73,11 @@ var compile = function(schema) {
   var visit = function(name, node) {
     var type = node.type
     var enm = node.enum || (type && type.enum)
+    var lvl = 1
+
+    var error = function(msg) {
+      return formatHelp(name, msg, scope.errors)
+    }
 
     var isNullType = [].concat(type).some(function(t) {
       return (t.type || t) === 'null'
@@ -78,10 +87,10 @@ var compile = function(schema) {
       if (isNullType) validate('if (%s === undefined) {', name)
       else validate('if (%s === undefined || %s === null) {', name, name)
 
-      validate()
-        ('validate.error = %s', formatHelp(name, 'is required'))
-        ('return false')
-      ('}')
+      validate
+        ('if (validate.error === null) validate.error = []')
+        ('validate.error.push(%s)', error('is required'))
+      ('} else {')
     } else {
       if (isNullType) validate('if (%s !== undefined) {', name)
       else validate('if (%s !== undefined && %s !== null) {', name, name)
@@ -106,11 +115,12 @@ var compile = function(schema) {
 
       if (!invalid) invalid = 'true'
 
-      validate()
+      lvl++
+      validate
         ('if (%s) {', invalid)
-          ('validate.error = %s', formatHelp(name, 'must be '+msg))
-          ('return false')
-        ('}')
+          ('if (validate.error === null) validate.error = []')
+          ('validate.error.push(%s)', error('must be '+msg))
+        ('} else {')
     }
 
     if (enm) {
@@ -122,26 +132,27 @@ var compile = function(schema) {
 
       if (!invalid) invalid = 'true'
 
+      lvl++
       validate
         ('if (%s) {', invalid)
-          ('validate.error = %s', formatHelp(name, 'must be one of ['+enm.join(', ')+']'))
-          ('return false')
-        ('}')
+          ('if (validate.error === null) validate.error = []')
+          ('validate.error.push(%s)', error('must be one of ['+enm.join(', ')+']'))
+        ('} else {')
     }
 
     if (node.minimum) {
       validate
         ('if (%s < %d) {', name, node.minimum)
-          ('validate.error = %s', formatHelp(name, 'must be more than '+node.minimum))
-          ('return false')
+          ('if (validate.error === null) validate.error = []')
+          ('validate.error.push(%s)', error('must be more than '+node.minimum))
         ('}')
     }
 
     if (node.maximum) {
       validate
         ('if (%s > %d) {', name, node.maximum)
-          ('validate.error = %s', formatHelp(name, 'must be less than '+node.maximum))
-          ('return false')
+          ('if (validate.error === null) validate.error = []')
+          ('validate.error.push(%s)', error('must be less than '+node.maximum))
         ('}')
     }
 
@@ -152,8 +163,8 @@ var compile = function(schema) {
 
       validate
         ('if (!pattern%d.test(%s)) {', i, name)
-          ('validate.error = %s', formatHelp(name, 'must match /'+node.pattern+'/'))
-          ('return false')
+          ('if (validate.error === null) validate.error = []')
+          ('validate.error.push(%s)', error('must match /'+node.pattern+'/'))
         ('}')
     }
 
@@ -164,20 +175,22 @@ var compile = function(schema) {
       if (node.minItems) {
         validate
           ('if (%s.length < %d) {', name, node.minItems)
-            ('validate.error = %s', formatHelp(name, 'must contain at least '+node.minItems+' item(s)'))
+            ('if (validate.error === null) validate.error = []')
+            ('validate.error.push(%s)', error('must contain at least '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.maxItems) {
         validate
           ('if (%s.length > %d) {', name, node.maxItems)
-            ('validate.error = %s', formatHelp(name, 'must contain at most '+node.minItems+' item(s)'))
+            ('if (validate.error === null) validate.error = []')
+            ('validate.error.push(%s)', error('must contain at most '+node.minItems+' item(s)'))
           ('}')
       }
       if (node.uniqueItems) {
         validate
           ('if (!unique(%s)) {', name)
-            ('validate.error = %s', formatHelp(name, 'must only contain unique values'))
-            ('return false')
+            ('if (validate.error === null) validate.error = []')
+            ('validate.error.push(%s)', error('must only contain unique values'))
           ('}')
       }
 
@@ -200,8 +213,8 @@ var compile = function(schema) {
       validate('var keys = Object.keys(%s)', name)
         ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
           ('if (%s) {', invalid)
+            ('if (validate.error === null) validate.error = []')
             ('valid.error = keys['+i+'] + " is not allowed"')
-            ('return false')
           ('}')
         ('}')
     }
@@ -216,22 +229,22 @@ var compile = function(schema) {
       })
     }
 
-    if (!node.required) validate('}')
+    while (lvl--) validate('}')
   }
 
   var validate = genfun()
     ('function validate(data) {')
-      ('validate.error = ""')
+      ('validate.error = null')
 
   schema.required = schema.required !== false
   visit('data', schema)
 
   validate()
-    ('return true')
+    ('return validate.error === null')
   ('}')
 
-  validate = validate.toFunction(scope)
-  validate.error = ''
+  validate = validate.trim().toFunction(scope)
+  validate.error = null
   validate.toJSON = function() {
     return schema
   }

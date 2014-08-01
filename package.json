@@ -4,7 +4,7 @@
   "description": "A JSONSchema / orderly validator that uses code generation to be extremely fast",
   "main": "index.js",
   "dependencies": {
-    "generate-function": "^1.0.2",
+    "generate-function": "^1.1.0",
     "generate-object-property": "^1.1.0",
     "orderly": "^1.1.0"
   },
