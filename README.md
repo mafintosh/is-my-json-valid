@@ -69,7 +69,7 @@ When running the [cosmicrealms.com benchmark](http://cosmicrealms.com/blog/2014/
 the following results on my macbook air
 
 ```
-is-my-json-valid v4 total time (3881) and per document time: 0.0019405 <-- or 2500x faster than jayschema
+is-my-json-valid v4 total time (632) and per document time: 0.00316
 amanda v3 total time (27121) and per document time: 1.35605
 jayschema v4 total time (99449) and per document time: 4.97245
 joi v3 total time (11949) and per document time: 0.59745
