@@ -214,7 +214,7 @@ var compile = function(schema) {
         ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
           ('if (%s) {', invalid)
             ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push({"field":"%s", "message":"must not contain property "+keys[i]})', formatName(name))
+            ('validate.errors.push({"field":"%s."+keys[i], "message":"is not defined in the schema"})', formatName(name))
           ('}')
         ('}')
     }
