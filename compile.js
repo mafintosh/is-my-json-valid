@@ -202,7 +202,7 @@ var compile = function(schema) {
 
     if (node.additionalProperties === false && node.type === 'object') {
       var i = loopVar()
-      var invalid = Object.keys(node.properties)
+      var invalid = Object.keys(node.properties || {})
         .map(function(p) {
           return 'keys['+i+'] !== '+JSON.stringify(p)
         })
