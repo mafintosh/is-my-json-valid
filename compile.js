@@ -13,12 +13,8 @@ var a = function(type) {
   }
 }
 
-var formatHelp = function(field, msg, errors) {
-  var err = {
-    field: field.replace(/\[[^\]]+\]/g, '.*'),
-    message: msg
-  }
-  return 'errors['+(errors.push(err)-1)+']'
+var formatName = function(field) {
+  return field.replace(/\[[^\]]+\]/g, '.*')
 }
 
 var types = {}
@@ -76,7 +72,11 @@ var compile = function(schema) {
     var lvl = 1
 
     var error = function(msg) {
-      return formatHelp(name, msg, scope.errors)
+      var err = {
+        field: formatName(name),
+        message: msg
+      }
+      return 'errors['+(scope.errors.push(err)-1)+']'
     }
 
     var isNullType = [].concat(type).some(function(t) {
@@ -214,7 +214,7 @@ var compile = function(schema) {
         ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
           ('if (%s) {', invalid)
             ('if (validate.errors === null) validate.errors = []')
-            ('validate.error = keys['+i+'] + " is not allowed"')
+            ('validate.errors.push({"field":"%s", "message":"must not contain property "+keys[i]})', formatName(name))
           ('}')
         ('}')
     }
