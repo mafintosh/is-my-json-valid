@@ -214,7 +214,7 @@ var compile = function(schema) {
         ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
           ('if (%s) {', invalid)
             ('if (validate.errors === null) validate.errors = []')
-            ('valid.error = keys['+i+'] + " is not allowed"')
+            ('validate.error = keys['+i+'] + " is not allowed"')
           ('}')
         ('}')
     }
