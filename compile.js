@@ -64,8 +64,8 @@ var toType = function(node) {
   return node.type
 }
 
-var compile = function(schema) {
-  schema = normalize(schema)
+var compile = function(sch) {
+  var schema = normalize(sch)
   var scope = {unique:unique, formats:formats}
 
   var syms = {}
@@ -231,7 +231,7 @@ var compile = function(schema) {
   })
 
   validate.toJSON = function() {
-    return schema
+    return sch
   }
 
   return validate
