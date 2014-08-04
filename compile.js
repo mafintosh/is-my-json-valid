@@ -1,5 +1,7 @@
-var genfun = require('generate-function')
+var normalize = require('./normalize')
+var formats = require('./formats')
 var genobj = require('generate-object-property')
+var genfun = require('generate-function')
 
 var a = function(type) {
   switch (type) {
@@ -18,6 +20,10 @@ var formatName = function(field) {
 }
 
 var types = {}
+
+types.any = function() {
+  return 'true'
+}
 
 types.null = function() {
   return name+' === null'
@@ -54,196 +60,164 @@ var unique = function(array) {
   return true
 }
 
-var validators = {}
+var toType = function(node) {
+  return node.type
+}
 
 var compile = function(schema) {
-  var scope = {unique:unique, errors:[]}
+  schema = normalize(schema)
+  var scope = {unique:unique, formats:formats}
+
+  var syms = {}
+  var gensym = function(name) {
+    return name+(syms[name] = (syms[name] || 0)+1)
+  }
 
   var vars = ['i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','y','z']
-  var loopVar = function() {
+  var genloop = function() {
     var v = vars.shift()
     vars.push(v+v[0])
     return v
   }
 
   var visit = function(name, node) {
-    var type = node.type
-    var enm = node.enum || (type && type.enum)
-    var lvl = 1
-
     var error = function(msg) {
-      var err = {
-        field: formatName(name),
-        message: msg
-      }
-      return 'errors['+(scope.errors.push(err)-1)+']'
-    }
-
-    var isNullType = [].concat(type).some(function(t) {
-      return (t.type || t) === 'null'
-    })
-
-    if (node.required) {
-      if (isNullType) validate('if (%s === undefined) {', name)
-      else validate('if (%s === undefined || %s === null) {', name, name)
-
+      var n = gensym('error')
+      scope[n] = {field:formatName(name), message:msg}
       validate
         ('if (validate.errors === null) validate.errors = []')
-        ('validate.errors.push(%s)', error('is required'))
-      ('} else {')
+        ('validate.errors.push(%s)', n)
+    }
+
+    if (node.required) {
+      if (node.nullable) validate('if (%s === undefined) {', name)
+      else validate('if (%s === undefined || %s === null) {', name, name)
+      error('is required')
+      validate('} else {')
     } else {
-      if (isNullType) validate('if (%s !== undefined) {', name)
+      if (node.nullable) validate('if (%s !== undefined) {', name)
       else validate('if (%s !== undefined && %s !== null) {', name, name)
     }
 
-    if (type) {
-      var msg = [].concat(type)
-        .map(function(t) {
-          return t.type || t
-        })
-        .map(a)
-        .join(' or ')
+    node.types.forEach(function(node, i) {
+      var valid = types[node.type](name)
 
-      var invalid = [].concat(type)
-        .map(function(t) {
-          return t.type || t
-        })
-        .map(function(t) {
-          return '!('+types[t](name)+')'
-        })
-        .join(' && ')
+      if (i) validate('} else if (%s) {', valid)
+      else validate('if (%s) {', valid)
 
-      if (!invalid) invalid = 'true'
+      if (!node.conditions) validate('// do nothing - just type validate')
 
-      lvl++
-      validate
-        ('if (%s) {', invalid)
-          ('if (validate.errors === null) validate.errors = []')
-          ('validate.errors.push(%s)', error('must be '+msg))
-        ('} else {')
-    }
+      if (node.values) {
+        var toCompare = function(v) {
+          return name+' !== '+JSON.stringify(v)
+        }
 
-    if (enm) {
-      var invalid = enm
-        .map(function(e) {
-          return name+' !== '+JSON.stringify(e)
-        })
-        .join(' && ')
-
-      if (!invalid) invalid = 'true'
-
-      lvl++
-      validate
-        ('if (%s) {', invalid)
-          ('if (validate.errors === null) validate.errors = []')
-          ('validate.errors.push(%s)', error('must be one of ['+enm.join(', ')+']'))
-        ('} else {')
-    }
-
-    if (node.minimum) {
-      validate
-        ('if (%s < %d) {', name, node.minimum)
-          ('if (validate.errors === null) validate.errors = []')
-          ('validate.errors.push(%s)', error('must be more than '+node.minimum))
-        ('}')
-    }
-
-    if (node.maximum) {
-      validate
-        ('if (%s > %d) {', name, node.maximum)
-          ('if (validate.errors === null) validate.errors = []')
-          ('validate.errors.push(%s)', error('must be less than '+node.maximum))
-        ('}')
-    }
-
-    if (node.pattern) {
-      var i = Object.keys(scope).length
-      var p = new RegExp(node.pattern)
-      scope['pattern'+i] = p
-
-      validate
-        ('if (!pattern%d.test(%s)) {', i, name)
-          ('if (validate.errors === null) validate.errors = []')
-          ('validate.errors.push(%s)', error('must match /'+node.pattern+'/'))
-        ('}')
-    }
-
-    var items = node.items
-    if (items && items[0]) items = items[0] // TODO: this is probably WRONG. investigate
-
-    if (type === 'array') {
-      if (node.minItems) {
-        validate
-          ('if (%s.length < %d) {', name, node.minItems)
-            ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push(%s)', error('must contain at least '+node.minItems+' item(s)'))
-          ('}')
+        validate('if (%s) {', node.values.map(toCompare).join(' && ') || 'true')
+        error('must be one of ['+enm.join(', ')+']')
+        validate('}')
+        return
       }
-      if (node.maxItems) {
-        validate
-          ('if (%s.length > %d) {', name, node.maxItems)
-            ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push(%s)', error('must contain at most '+node.minItems+' item(s)'))
-          ('}')
+
+      if (node.minimum) {
+        validate('if (%s < %d) {', name, node.minimum)
+        error('must be more than '+node.minimum)
+        validate('}')
       }
-      if (node.uniqueItems) {
+
+      if (node.maximum) {
+        validate('if (%s > %d) {', name, node.maximum)
+        error('must be less than '+node.maximum)
+        validate('}')
+      }
+
+      if (node.format && formats[node.format]) {
+        var n = gensym('format')
+        scope[n] = formats[node.format]
+
+        validate('if (!%s.test(%s)) {', n, name)
+        error('must be '+node.format+' format')
+        validate('}')
+      }
+
+      if (node.pattern) {
+        var n = gensym('pattern')
+        scope[n] = new RegExp(node.pattern)
+
+        validate('if (!%s.test(%s)) {', n, name)
+        error('must match /'+node.pattern+'/')
+        validate('}')
+      }
+
+      if (node.type === 'array') {
+        if (node.minItems) {
+          validate('if (%s.length < %d) {', name, node.minItems)
+          error('must contain at least '+node.minItems+' item(s)')
+          validate('}')
+        }
+
+        if (node.maxItems) {
+          validate('if (%s.length > %d) {', name, node.maxItems)
+          error('must contain at most '+node.minItems+' item(s)')
+          validate('}')
+        }
+
+        if (node.uniqueItems) {
+          validate('if (!unique(%s)) {', name)
+          error('must only contain unique values')
+          validate('}')
+        }
+
+        var i = genloop()
+        validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
+        visit(name+'['+i+']', node.items)
+        validate('}')
+      }
+
+      if (node.type === 'object' && node.additionalProperties === false) {
+        var i = genloop()
+        var keys = gensym('keys')
+
+        var toCompare = function(p) {
+          return keys+'['+i+'] !== '+JSON.stringify(p)
+        }
+
         validate
-          ('if (!unique(%s)) {', name)
-            ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push(%s)', error('must only contain unique values'))
+          ('var %s = Object.keys(%s)', keys, name)
+          ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+            ('if (%s) {', Object.keys(node.properties).map(toCompare).join(' && ') || 'true')
+              ('if (validate.errors === null) validate.errors = []')
+              ('validate.errors.push({"field":"%s."+%s[i], "message":"is not defined in the schema"})', formatName(name), keys)
+            ('}')
           ('}')
       }
 
-      var i = loopVar()
-      validate('for (var '+i+' = 0; '+i+' < %s.length; '+i+'++) {', name)
-      visit(name+'['+i+']', items)
+      if (node.type === 'object') {
+        Object.keys(node.properties).forEach(function(n) {
+          visit(genobj(name, n), node.properties[n])
+        })
+      }
+    })
+
+    if (node.types.length) {
+      validate('} else {')
+      error('must be '+node.types.map(toType).map(a).join(' or '))
       validate('}')
     }
 
-    if (node.additionalProperties === false && node.type === 'object') {
-      var i = loopVar()
-      var invalid = Object.keys(node.properties || {})
-        .map(function(p) {
-          return 'keys['+i+'] !== '+JSON.stringify(p)
-        })
-        .join(' && ')
-
-      if (!invalid) invalid = 'true'
-
-      validate('var keys = Object.keys(%s)', name)
-        ('for (var '+i+' = 0; '+i+' < keys.length; '+i+'++) {')
-          ('if (%s) {', invalid)
-            ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push({"field":"%s."+keys[i], "message":"is not defined in the schema"})', formatName(name))
-          ('}')
-        ('}')
-    }
-
-
-    if (node.properties) {
-      Object.keys(node.properties).forEach(function(n) {
-        var pname = genobj(name, n)
-        var prop = node.properties[n]
-        if (Array.isArray(node.required)) prop.required = node.required.indexOf(n) > -1
-        visit(pname, prop)
-      })
-    }
-
-    while (lvl--) validate('}')
+    validate('}')
   }
 
-  var validate = genfun()
+  var validate = genfun
     ('function validate(data) {')
       ('validate.errors = null')
 
-  schema.required = schema.required !== false
   visit('data', schema)
 
-  validate()
-    ('return validate.errors === null')
-  ('}')
+  validate
+      ('return validate.errors === null')
+    ('}')
 
-  validate = validate.trim().toFunction(scope)
+  validate = validate.toFunction(scope)
 
   validate.errors = null
 
