@@ -1,6 +1,6 @@
 {
   "name": "is-my-json-valid",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "A JSONSchema / orderly validator that uses code generation to be extremely fast",
   "main": "index.js",
   "dependencies": {
