@@ -113,7 +113,7 @@ var compile = function(sch) {
         }
 
         validate('if (%s) {', node.values.map(toCompare).join(' && ') || 'true')
-        error('must be one of ['+enm.join(', ')+']')
+        error('must be one of ['+node.values.join(', ')+']')
         validate('}')
         return
       }
