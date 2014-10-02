@@ -94,3 +94,21 @@ tape('nested array', function(t) {
   t.notOk(validate({list:[1]}))
   t.end()
 })
+
+tape('enum', function(t) {
+  var validate = validator({
+    type: 'object',
+    properties: {
+      foo: {
+        type: 'number',
+        required: true,
+        enum: [42]
+      }
+    }
+  })
+
+  t.notOk(validate({}), 'is required')
+  t.ok(validate({foo:42}))
+  t.notOk(validate({foo:43}))
+  t.end()
+})
