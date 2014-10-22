@@ -120,13 +120,13 @@ var compile = function(sch) {
 
       if (node.minimum !== undefined) {
         validate('if (%s < %d) {', name, node.minimum)
-        error('must be more than '+node.minimum)
+        error('must be more than or equal to '+node.minimum)
         validate('}')
       }
 
       if (node.maximum !== undefined) {
         validate('if (%s > %d) {', name, node.maximum)
-        error('must be less than '+node.maximum)
+        error('must be less than or equal to '+node.maximum)
         validate('}')
       }
 
