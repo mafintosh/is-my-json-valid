@@ -130,3 +130,24 @@ tape('minimum/maximum', function(t) {
   t.notOk(validate({foo:42}))
   t.end()
 })
+
+tape('exclusiveMinimum/exclusiveMaximum', function(t) {
+  var validate = validator({
+    type: 'object',
+    properties: {
+      foo: {
+        type: 'number',
+        minimum: 10,
+        maximum: 20,
+        exclusiveMinimum: true,
+        exclusiveMaximum: true
+      }
+    }
+  })
+
+  t.notOk(validate({foo:10}))
+  t.ok(validate({foo:11}))
+  t.notOk(validate({foo:20}))
+  t.ok(validate({foo:19}))
+  t.end()
+})

@@ -37,6 +37,9 @@ module.exports = function(schema) {
         }
       })
 
+      if (root.minimum !== undefined) root.exclusiveMinimum = !!node.exclusiveMinimum
+      if (root.maximum !== undefined) root.exclusiveMaximum = !!node.exclusiveMaximum
+
       if (root.pattern) root.pattern = root.pattern.replace(/(^\/)|(\/$)/g, '')
 
       switch (node.type) {
