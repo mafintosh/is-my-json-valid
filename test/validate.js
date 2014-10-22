@@ -112,3 +112,21 @@ tape('enum', function(t) {
   t.notOk(validate({foo:43}))
   t.end()
 })
+
+tape('minimum/maximum', function(t) {
+  var validate = validator({
+    type: 'object',
+    properties: {
+      foo: {
+        type: 'number',
+        minimum: 0,
+        maximum: 0
+      }
+    }
+  })
+
+  t.notOk(validate({foo:-42}))
+  t.ok(validate({foo:0}))
+  t.notOk(validate({foo:42}))
+  t.end()
+})
