@@ -54,7 +54,7 @@ module.exports = function(schema) {
         break
 
         case 'array':
-        root.items = visit({}, node.items)
+        root.items = visit({}, node.items || {})
         root.conditions++
         break
       }
