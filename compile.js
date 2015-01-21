@@ -25,7 +25,7 @@ types.any = function() {
   return 'true'
 }
 
-types.null = function() {
+types.null = function(name) {
   return name+' === null'
 }
 
@@ -195,6 +195,17 @@ var compile = function(sch) {
         Object.keys(node.properties).forEach(function(n) {
           visit(genobj(name, n), node.properties[n])
         })
+      }
+
+      if (node.additionalItems) {
+        var i = genloop()
+        validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.tuble, i, name, i)
+        visit(name+'['+i+']', node.additionalItems)
+        validate('}')
+      } else if (node.additionalItems === false) {
+        validate('if (%s.length > %d) {', name, node.tuble)
+        error('has additional items')
+        validate('}')
       }
     })
 

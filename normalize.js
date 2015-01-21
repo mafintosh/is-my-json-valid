@@ -42,7 +42,9 @@ module.exports = function(schema) {
 
       if (root.pattern) root.pattern = root.pattern.replace(/(^\/)|(\/$)/g, '')
 
-      switch (node.type) {
+      var type = node.type || (Array.isArray(node.items) ? 'tuple' : null)
+
+      switch (type) {
         case 'object':
         root.properties = {}
         root.conditions++
@@ -56,6 +58,27 @@ module.exports = function(schema) {
         case 'array':
         root.items = visit({}, node.items || {})
         root.conditions++
+        break
+
+        case 'tuple':
+        root.properties = {}
+        root.conditions++
+
+        node.items.forEach(function(item, i) {
+          root.properties[i] = visit({}, item)
+          root.properties[i].required = true
+        })
+
+        root.tuble = node.items.length
+
+        if (node.additionalItems) {
+          root.additionalItems = {}
+          root.conditions++
+          visit(root.additionalItems, node.additionalItems)
+        } else if (node.additionalItems === false) {
+          root.additionalItems = false
+          root.conditions++
+        }
         break
       }
 
