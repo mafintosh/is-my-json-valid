@@ -70,7 +70,7 @@ types.number = function(name) {
 }
 
 types.integer = function(name) {
-  return 'typeof '+name+' === "number" && ('+name+' | 0) === '+name
+  return 'typeof '+name+' === "number" && (('+name+' | 0) === '+name+' || '+name+' > 9007199254740992 || '+name+' < -9007199254740992)'
 }
 
 types.string = function(name) {
