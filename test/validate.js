@@ -1,32 +1,12 @@
 var tape = require('tape')
+var fs = require('fs')
 var cosmic = require('./fixtures/cosmic')
 var validator = require('../')
 var validatorRequire = require('../require')
 
-tape('orderly', function(t) {
-  var validate = validatorRequire('./fixtures/test.schema')
-
-  t.ok(validate({
-    name: 'test'
-  }), 'should be valid')
-
-  t.ok(validate({
-    name: 53
-  }), 'should be valid')
-
-  t.notOk(validate({
-    name: false
-  }), 'should be invalid')
-
-  t.same(validate.errors, [{field:'data.name', message:'must be a string or a number'}])
-
-  t.notOk(validate(), 'should be invalid')
-
-  t.end()
-})
-
 tape('simple', function(t) {
   var schema = {
+    required: true,
     type: 'object',
     properties: {
       hello: {type:'string', required:true}
@@ -150,4 +130,24 @@ tape('exclusiveMinimum/exclusiveMaximum', function(t) {
   t.notOk(validate({foo:20}))
   t.ok(validate({foo:19}))
   t.end()
+})
+
+var files = fs.readdirSync(__dirname+'/json-schema-draft4')
+  .map(function(file) {
+    if (file === 'definitions.json') return null
+    if (file === 'refRemote.json') return null
+    return require('./json-schema-draft4/'+file)
+  })
+  .filter(Boolean)
+
+files.forEach(function(file) {
+  file.forEach(function(f) {
+    tape('json-schema-test-suite '+f.description, function(t) {
+      var validate = validator(f.schema)
+      f.tests.forEach(function(test) {
+        t.same(validate(test.data), test.valid, test.description)
+      })
+      t.end()
+    })
+  })
 })
