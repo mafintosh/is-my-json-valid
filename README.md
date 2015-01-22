@@ -7,7 +7,7 @@ to be extremely fast
 npm install is-my-json-valid
 ```
 
-It supports passes the entire JSONSchema v4 test suite except for `remoteRefs` and `maxLength` and `minLength` with the use of unicode surrogate pairs.
+It supports passes the entire JSONSchema v4 test suite except for `remoteRefs` and `maxLength`/`minLength` when using unicode surrogate pairs.
 
 [![build status](http://img.shields.io/travis/mafintosh/is-my-json-valid.svg?style=flat)](http://travis-ci.org/mafintosh/is-my-json-valid)
 
