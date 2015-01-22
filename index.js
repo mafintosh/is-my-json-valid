@@ -92,10 +92,7 @@ var toType = function(node) {
   return node.type
 }
 
-var compile = function(schema, cache, root) {
-  if (!cache) cache = {}
-  if (!root) root = schema
-
+var compile = function(schema, cache, root, reporter) {
   var scope = {unique:unique, formats:formats}
 
   var syms = {}
@@ -119,7 +116,7 @@ var compile = function(schema, cache, root) {
     return v
   }
 
-  var visit = function(name, node) {
+  var visit = function(name, node, reporter) {
     if (Array.isArray(node.items)) { // tuple type
       node.properties = {}
       node.items.forEach(function(item, i) {
@@ -131,6 +128,11 @@ var compile = function(schema, cache, root) {
 
     var indent = 0
     var error = function(msg) {
+      if (reporter === false) {
+        validate('errors++')
+        return
+      }
+
       var n = gensym('error')
       scope[n] = {field:formatName(name), message:msg}
       validate
@@ -180,7 +182,7 @@ var compile = function(schema, cache, root) {
       } else if (node.additionalItems) {
         var i = genloop()
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
-        visit(name+'['+i+']', node.additionalItems)
+        visit(name+'['+i+']', node.additionalItems, reporter)
         validate('}')
       }   
     }
@@ -200,14 +202,6 @@ var compile = function(schema, cache, root) {
       error('must be unique')
       validate('}')
       if (node.type !== 'array') validate('}')
-    }
-
-    if (node.properties) {
-      Object.keys(node.properties).forEach(function(p) {
-        visit(genobj(name, p), node.properties[p])
-        var def = node.properties[p].default
-        if (def !== undefined) validate('if (%s === undefined) %s = %s', genobj(name, p), genobj(name, p), JSON.stringify(def))        
-      })
     }
 
     if (node.enum) {
@@ -246,7 +240,7 @@ var compile = function(schema, cache, root) {
         }
         if (typeof deps === 'object') {
           validate('if (%s !== undefined) {', genobj(name, key))
-          visit(name, deps)
+          visit(name, deps, reporter)
           validate('}')
         }
       })
@@ -279,7 +273,7 @@ var compile = function(schema, cache, root) {
       if (node.additionalProperties === false) {
         error('has additional properties')
       } else {
-        visit(name+'['+keys+'['+i+']]', node.additionalProperties)
+        visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter)
       }
 
       validate
@@ -295,27 +289,22 @@ var compile = function(schema, cache, root) {
         var fn = cache[node.$ref]
         if (!fn) {
           cache[node.$ref] = function proxy(data) {
-            var valid = fn(data)
-            proxy.errors = fn.errors
-            return valid
+            return fn(data)
           }
-          fn = compile(sub, cache, root)
+          fn = compile(sub, cache, root, false)
         }
         var n = gensym('ref')
         scope[n] = fn
-        validate
-          ('if (!(%s(%s))) {', n, name)
-            ('errors++')
-            ('if (validate.errors === null) validate.errors = []')
-            ('validate.errors.push.apply(validate.errors, %s.errors)', n)
-          ('}')
+        validate('if (!(%s(%s))) {', n, name)
+        error('referenced schema does not match')
+        validate('}')
       }
     }
 
     if (node.not) {
       var prev = gensym('prev')
       validate('var %s = errors', prev)
-      visit(name, node.not)
+      visit(name, node.not, false)
       validate('if (%s === errors) {', prev)
       error('negative schema matches')
       validate('} else {')
@@ -328,7 +317,7 @@ var compile = function(schema, cache, root) {
 
       var i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
-      visit(name+'['+i+']', node.items)
+      visit(name+'['+i+']', node.items, reporter)
       validate('}')
 
       if (node.type !== 'array') validate('}')
@@ -345,7 +334,7 @@ var compile = function(schema, cache, root) {
       Object.keys(node.patternProperties).forEach(function(key) {
         var p = patterns(key)
         validate('if (%s.test(%s)) {', p, keys+'['+i+']')
-        visit(name+'['+keys+'['+i+']]', node.patternProperties[key])
+        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter)
         validate('}')
       })
 
@@ -364,7 +353,7 @@ var compile = function(schema, cache, root) {
 
     if (node.allOf) {
       node.allOf.forEach(function(sch) {
-        visit(name, sch)
+        visit(name, sch, reporter)
       })
     }
 
@@ -378,7 +367,7 @@ var compile = function(schema, cache, root) {
           validate('if (errors !== %s) {', prev)
             ('errors = %s', prev)
         }
-        visit(name, sch)
+        visit(name, sch, false)
       })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
@@ -397,7 +386,7 @@ var compile = function(schema, cache, root) {
         ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch)
+        visit(name, sch, false)
         validate('if (%s === errors) {', prev)
           ('%s++', passes)
         ('} else {')
@@ -495,6 +484,14 @@ var compile = function(schema, cache, root) {
       validate('}')
     }
 
+    if (node.properties) {
+      Object.keys(node.properties).forEach(function(p) {
+        visit(genobj(name, p), node.properties[p], reporter)
+        var def = node.properties[p].default
+        if (def !== undefined) validate('if (%s === undefined) %s = %s', genobj(name, p), genobj(name, p), JSON.stringify(def))
+      })
+    }
+
     while (indent--) validate('}')
   }
 
@@ -503,7 +500,7 @@ var compile = function(schema, cache, root) {
       ('validate.errors = null')
       ('var errors = 0')
 
-  visit('data', schema)
+  visit('data', schema, reporter)
 
   validate
       ('return errors === 0')
@@ -530,5 +527,5 @@ var compile = function(schema, cache, root) {
 
 module.exports = function(schema) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
-  return compile(schema)
+  return compile(schema, {}, schema, true)
 }
