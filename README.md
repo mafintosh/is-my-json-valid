@@ -1,11 +1,13 @@
 # is-my-json-valid
 
-A [JSONSchema](http://json-schema.org/)/[orderly](http://orderly-json.org/) validator that uses code generation
+A [JSONSchema](http://json-schema.org/) validator that uses code generation
 to be extremely fast
 
 ```
 npm install is-my-json-valid
 ```
+
+It supports passes the entire JSONSchema v4 test suite except for `remoteRefs` and `maxLength` and `minLength` with the use of unicode surrogate pairs.
 
 [![build status](http://img.shields.io/travis/mafintosh/is-my-json-valid.svg?style=flat)](http://travis-ci.org/mafintosh/is-my-json-valid)
 
@@ -17,6 +19,7 @@ Simply pass a schema to compile it
 var validator = require('is-my-json-valid')
 
 var validate = validator({
+  required: true,
   type: 'object',
   properties: {
     hello: {
@@ -38,16 +41,6 @@ You can also pass the schema as a string
 
 ``` js
 var validate = validate('{"type": ... }')
-```
-
-Or pass a orderly schema
-
-``` js
-var validate = validate(
-  'object {'+
-  '  string name;'+
-  '}*;'
-)
 ```
 
 Optionally you can use the require submodule to load a schema from `__dirname`
