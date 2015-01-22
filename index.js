@@ -17,6 +17,18 @@ var a = function(type) {
 
 var get = function(obj, ptr) {
   if (/^https?:\/\//.test(ptr)) return null
+
+  var visit = function(sub) {
+    if (sub && sub.id === ptr) return sub
+    if (typeof sub !== 'object' || !sub) return null
+    return Object.keys(sub).reduce(function(res, k) {
+      return res || visit(sub[k])
+    }, null)
+  }
+
+  var res = visit(obj)
+  if (res) return res
+
   ptr = ptr.replace(/^#/, '')
   ptr = ptr.replace(/\/$/, '')
 
