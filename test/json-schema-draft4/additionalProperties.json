@@ -16,7 +16,8 @@
             {
                 "description": "an additional property is invalid",
                 "data": {"foo" : 1, "bar" : 2, "quux" : "boom"},
-                "valid": false
+                "valid": false,
+                "error": "quux is a additional property."
             },
             {
                 "description": "ignores non-objects",

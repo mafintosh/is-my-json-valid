@@ -127,18 +127,23 @@ var compile = function(schema, cache, root, reporter) {
     }
 
     var indent = 0
-    var error = function(msg) {
+    var error = function(msg, getKey) {
       if (reporter === false) {
         validate('errors++')
         return
       }
 
       var n = gensym('error')
-      scope[n] = {field:formatName(name), message:msg}
       validate
         ('errors++')
         ('if (validate.errors === null) validate.errors = []')
-        ('validate.errors.push(%s)', n)
+      if (getKey){
+          validate
+            ('validate.errors.push({field: %s[%s], message:"%s"})', keys, i, msg)
+      }else {
+          ('validate.errors.push(%s)', n)
+          scope[n] = {field:formatName(name), message:msg}
+        }
     }
 
     if (node.required === true) {
@@ -271,7 +276,7 @@ var compile = function(schema, cache, root, reporter) {
           ('if (%s) {', additionalProp)
 
       if (node.additionalProperties === false) {
-        error('has additional properties')
+        error('is a additional property.', true);
       } else {
         visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter)
       }
