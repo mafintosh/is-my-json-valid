@@ -146,6 +146,8 @@ files.forEach(function(file) {
       var validate = validator(f.schema)
       f.tests.forEach(function(test) {
         t.same(validate(test.data), test.valid, test.description)
+        if (test.error)
+          t.same(validate.error, test.error, test.description)
       })
       t.end()
     })
