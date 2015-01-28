@@ -1,6 +1,7 @@
 var genobj = require('generate-object-property')
 var genfun = require('generate-function')
 var jsonpointer = require('jsonpointer')
+var xtend = require('xtend')
 var formats = require('./formats')
 
 var a = function(type) {
@@ -92,8 +93,9 @@ var toType = function(node) {
   return node.type
 }
 
-var compile = function(schema, cache, root, reporter) {
-  var scope = {unique:unique, formats:formats}
+var compile = function(schema, cache, root, reporter, opts) {
+  var fmts = opts ? xtend(formats, opts.formats) : formats
+  var scope = {unique:unique, formats:fmts}
 
   var syms = {}
   var gensym = function(name) {
@@ -187,9 +189,9 @@ var compile = function(schema, cache, root, reporter) {
       }   
     }
 
-    if (node.format && formats[node.format]) {
+    if (node.format && fmts[node.format]) {
       var n = gensym('format')
-      scope[n] = formats[node.format]
+      scope[n] = fmts[node.format]
 
       validate('if (!%s.test(%s)) {', n, name)
       error('must be '+node.format+' format')
@@ -291,7 +293,7 @@ var compile = function(schema, cache, root, reporter) {
           cache[node.$ref] = function proxy(data) {
             return fn(data)
           }
-          fn = compile(sub, cache, root, false)
+          fn = compile(sub, cache, root, false, opts)
         }
         var n = gensym('ref')
         scope[n] = fn
@@ -525,7 +527,7 @@ var compile = function(schema, cache, root, reporter) {
   return validate
 }
 
-module.exports = function(schema) {
+module.exports = function(schema, opts) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
-  return compile(schema, {}, schema, true)
+  return compile(schema, {}, schema, true, opts)
 }

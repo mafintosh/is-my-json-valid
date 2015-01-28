@@ -48,10 +48,26 @@ Optionally you can use the require submodule to load a schema from `__dirname`
 ``` js
 var validator = require('is-my-json-valid/require')
 var validate = validator('my-schema.json')
+```
 
-// or load a orderly schema
+## Custom formats
 
-var validate = validator('my-orderly-schema.schema')
+is-my-json-valid supports the formats specified in JSON schema v4 (such as date-time).
+If you want to add your own custom formats pass them as the formats options to the validator
+
+``` js
+var validate = validator({
+  type: 'string',
+  required: true,
+  format: 'only-a'
+}, {
+  formats: {
+    'only-a': /^a+$/
+  }
+})
+
+console.log(validate('aa')) // true
+console.log(validate('ab')) // false
 ```
 
 ## Performance

@@ -132,6 +132,25 @@ tape('exclusiveMinimum/exclusiveMaximum', function(t) {
   t.end()
 })
 
+tape('custom format', function(t) {
+  var validate = validator({
+    type: 'object',
+    properties: {
+      foo: {
+        type: 'string',
+        format: 'as'
+      }
+    }
+  }, {formats: {as:/^a+$/}})
+
+  t.notOk(validate({foo:''}), 'not as')
+  t.notOk(validate({foo:'b'}), 'not as')
+  t.notOk(validate({foo:'aaab'}), 'not as')
+  t.ok(validate({foo:'a'}), 'as')
+  t.ok(validate({foo:'aaaaaa'}), 'as')
+  t.end()
+})
+
 var files = fs.readdirSync(__dirname+'/json-schema-draft4')
   .map(function(file) {
     if (file === 'definitions.json') return null
