@@ -181,7 +181,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       var n = gensym('format')
       scope[n] = fmts[node.format]
 
-      validate('if (!%s.test(%s)) {', n, name)
+      if (typeof scope[n] === 'function') validate('if (!%s(%s)) {', n, name)
+      else validate('if (!%s.test(%s)) {', n, name)
       error('must be '+node.format+' format')
       validate('}')
     }
