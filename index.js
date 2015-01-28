@@ -4,18 +4,6 @@ var jsonpointer = require('jsonpointer')
 var xtend = require('xtend')
 var formats = require('./formats')
 
-var a = function(type) {
-  switch (type) {
-    case 'array':
-    case 'object':
-    case 'integer':
-    return 'an '+type
-
-    default:
-    return 'a '+type
-  }
-}
-
 var get = function(obj, ptr) {
   if (/^https?:\/\//.test(ptr)) return null
 
