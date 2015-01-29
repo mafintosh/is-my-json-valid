@@ -186,3 +186,26 @@ tape('do not mutate schema', function(t) {
   t.same(sch, copy, 'did not mutate')
   t.end()
 })
+
+tape('primitives', function(t) {
+  var schema = {
+    type: 'object',
+    properties: {
+      foo: {type:'string'},
+      bar: {type:'number'},
+      baz: {type:'boolean'}
+    }
+  }
+
+  var validate = validator(schema)
+
+  t.ok(validate({foo: new String('world')}), 'should be valid')
+  t.ok(validate({foo: new Object('world')}), 'should be valid')
+  t.ok(validate({bar: new Number(0)}), 'should be valid')
+  t.ok(validate({bar: new Object(0)}), 'should be valid')
+  t.ok(validate({baz: new Boolean(true)}), 'should be valid')
+  t.ok(validate({baz: new Boolean(false)}), 'should be valid')
+  t.ok(validate({baz: new Object(true)}), 'should be valid')
+  t.ok(validate({baz: new Object(false)}), 'should be valid')
+  t.end()
+})
