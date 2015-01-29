@@ -170,6 +170,24 @@ tape('custom format function', function(t) {
   t.end()
 })
 
+tape('do not mutate schema', function(t) {
+  var sch = {
+    items: [
+      {}
+    ],
+    additionalItems: {
+      type: 'integer'
+    }
+  }
+
+  var copy = JSON.parse(JSON.stringify(sch))
+
+  validator(sch)
+
+  t.same(sch, copy, 'did not mutate')
+  t.end()
+})
+
 var files = fs.readdirSync(__dirname+'/json-schema-draft4')
   .map(function(file) {
     if (file === 'definitions.json') return null

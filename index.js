@@ -107,13 +107,17 @@ var compile = function(schema, cache, root, reporter, opts) {
   }
 
   var visit = function(name, node, reporter) {
+    var properties = node.properties
+    var type = node.type
+    var tuple = false
+
     if (Array.isArray(node.items)) { // tuple type
-      node.properties = {}
+      properties = {}
       node.items.forEach(function(item, i) {
-        node.properties[i] = item
+        properties[i] = item
       })
-      node.type = 'array'
-      node.tuple = true
+      type = 'array'
+      tuple = true
     }
 
     var indent = 0
@@ -151,7 +155,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('if (%s !== undefined) {', name)
     }
 
-    var valid = [].concat(node.type)
+    var valid = [].concat(type)
       .map(function(t) {
         return types[t || 'any'](name)
       })
@@ -164,7 +168,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('} else {')
     }
 
-    if (node.tuple) {
+    if (tuple) {
       if (node.additionalItems === false) {
         validate('if (%s.length > %d) {', name, node.items.length)
         error('has additional items')
@@ -188,11 +192,11 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.uniqueItems) {
-      if (node.type !== 'array') validate('if (%s) {', types.array(name))
+      if (type !== 'array') validate('if (%s) {', types.array(name))
       validate('if (!(unique(%s))) {', name)
       error('must be unique')
       validate('}')
-      if (node.type !== 'array') validate('}')
+      if (type !== 'array') validate('}')
     }
 
     if (node.enum) {
@@ -214,7 +218,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.dependencies) {
-      if (node.type !== 'object') validate('if (%s) {', types.object(name))
+      if (type !== 'object') validate('if (%s) {', types.object(name))
 
       Object.keys(node.dependencies).forEach(function(key) {
         var deps = node.dependencies[key]
@@ -236,11 +240,11 @@ var compile = function(schema, cache, root, reporter, opts) {
         }
       })
 
-      if (node.type !== 'object') validate('}')      
+      if (type !== 'object') validate('}')
     }
 
     if (node.additionalProperties || node.additionalProperties === false) {
-      if (node.type !== 'object') validate('if (%s) {', types.object(name))
+      if (type !== 'object') validate('if (%s) {', types.object(name))
 
       var i = genloop()
       var keys = gensym('keys')
@@ -253,7 +257,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         return '!'+patterns(p)+'.test('+keys+'['+i+'])'
       }
 
-      var additionalProp = Object.keys(node.properties || {}).map(toCompare)
+      var additionalProp = Object.keys(properties || {}).map(toCompare)
         .concat(Object.keys(node.patternProperties || {}).map(toTest))
         .join(' && ') || 'true'
 
@@ -271,7 +275,7 @@ var compile = function(schema, cache, root, reporter, opts) {
           ('}')
         ('}')
 
-      if (node.type !== 'object') validate('}')
+      if (type !== 'object') validate('}')
     }
 
     if (node.$ref) {
@@ -303,19 +307,19 @@ var compile = function(schema, cache, root, reporter, opts) {
       ('}')
     }
 
-    if (node.items && !node.tuple) {
-      if (node.type !== 'array') validate('if (%s) {', types.array(name))
+    if (node.items && !tuple) {
+      if (type !== 'array') validate('if (%s) {', types.array(name))
 
       var i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
       visit(name+'['+i+']', node.items, reporter)
       validate('}')
 
-      if (node.type !== 'array') validate('}')
+      if (type !== 'array') validate('}')
     }
 
     if (node.patternProperties) {
-      if (node.type !== 'object') validate('if (%s) {', types.object(name))
+      if (type !== 'object') validate('if (%s) {', types.object(name))
       var keys = gensym('keys')
       var i = genloop()
       validate
@@ -330,16 +334,16 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
 
       validate('}')
-      if (node.type !== 'object') validate('}')
+      if (type !== 'object') validate('}')
     }
 
     if (node.pattern) {
       var p = patterns(node.pattern)
-      if (node.type !== 'string') validate('if (%s) {', types.string(name))
+      if (type !== 'string') validate('if (%s) {', types.string(name))
       validate('if (!(%s.test(%s))) {', p, name)
       error('pattern mismatch')
       validate('}')
-      if (node.type !== 'string') validate('}')
+      if (type !== 'string') validate('}')
     }
 
     if (node.allOf) {
@@ -391,7 +395,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.multipleOf !== undefined) {
-      if (node.type !== 'number' && node.type !== 'integer') validate('if (%s) {', types.number(name))
+      if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
 
       var factor = ((node.multipleOf | 0) !== node.multipleOf) ? Math.pow(10, node.multipleOf.toString().split('.').pop().length) : 1
       if (factor > 1) validate('if ((%d*%s) % %d) {', factor, name, factor*node.multipleOf)
@@ -400,67 +404,67 @@ var compile = function(schema, cache, root, reporter, opts) {
       error('has a remainder')
       validate('}')
 
-      if (node.type !== 'number' && node.type !== 'integer') validate('}')
+      if (type !== 'number' && type !== 'integer') validate('}')
     }
 
     if (node.maxProperties !== undefined) {
-      if (node.type !== 'object') validate('if (%s) {', types.object(name))
+      if (type !== 'object') validate('if (%s) {', types.object(name))
       
       validate('if (Object.keys(%s).length > %d) {', name, node.maxProperties)
       error('has more properties than allowed')
       validate('}')
 
-      if (node.type !== 'object') validate('}')      
+      if (type !== 'object') validate('}')
     }
 
     if (node.minProperties !== undefined) {
-      if (node.type !== 'object') validate('if (%s) {', types.object(name))
+      if (type !== 'object') validate('if (%s) {', types.object(name))
       
       validate('if (Object.keys(%s).length < %d) {', name, node.minProperties)
       error('has less properties than allowed')
       validate('}')
 
-      if (node.type !== 'object') validate('}')      
+      if (type !== 'object') validate('}')
     }
 
     if (node.maxItems !== undefined) {
-      if (node.type !== 'array') validate('if (%s) {', types.array(name))
+      if (type !== 'array') validate('if (%s) {', types.array(name))
       
       validate('if (%s.length > %d) {', name, node.maxItems)
       error('has more items than allowed')
       validate('}')
 
-      if (node.type !== 'array') validate('}')
+      if (type !== 'array') validate('}')
     }
 
     if (node.minItems !== undefined) {
-      if (node.type !== 'array') validate('if (%s) {', types.array(name))
+      if (type !== 'array') validate('if (%s) {', types.array(name))
       
       validate('if (%s.length < %d) {', name, node.minItems)
       error('has less items than allowed')
       validate('}')
 
-      if (node.type !== 'array') validate('}')
+      if (type !== 'array') validate('}')
     }
 
     if (node.maxLength !== undefined) {
-      if (node.type !== 'string') validate('if (%s) {', types.string(name))
+      if (type !== 'string') validate('if (%s) {', types.string(name))
 
       validate('if (%s.length > %d) {', name, node.maxLength)
       error('has longer length than allowed')
       validate('}')
 
-      if (node.type !== 'string') validate('}')
+      if (type !== 'string') validate('}')
     }
 
     if (node.minLength !== undefined) {
-      if (node.type !== 'string') validate('if (%s) {', types.string(name))
+      if (type !== 'string') validate('if (%s) {', types.string(name))
 
       validate('if (%s.length < %d) {', name, node.minLength)
       error('has less length than allowed')
       validate('}')
 
-      if (node.type !== 'string') validate('}')
+      if (type !== 'string') validate('}')
     }
 
     if (node.minimum !== undefined) {
@@ -475,10 +479,10 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('}')
     }
 
-    if (node.properties) {
-      Object.keys(node.properties).forEach(function(p) {
-        visit(genobj(name, p), node.properties[p], reporter)
-        var def = node.properties[p].default
+    if (properties) {
+      Object.keys(properties).forEach(function(p) {
+        visit(genobj(name, p), properties[p], reporter)
+        var def = properties[p].default
         if (def !== undefined) validate('if (%s === undefined) %s = %s', genobj(name, p), genobj(name, p), JSON.stringify(def))
       })
     }
