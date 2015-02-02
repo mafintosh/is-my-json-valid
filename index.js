@@ -43,7 +43,9 @@ types.null = function(name) {
 }
 
 types.boolean = function(name) {
-  return 'typeof '+name+' === "boolean"'
+  return name+' === true || '+name+' === false || ' +
+    name+' && typeof '+name+' === "object" && ' +
+    'Object.prototype.toString.call('+name+') === "[object Boolean]" || false'
 }
 
 types.array = function(name) {
@@ -55,7 +57,9 @@ types.object = function(name) {
 }
 
 types.number = function(name) {
-  return 'typeof '+name+' === "number"'
+  return 'typeof '+name+' === "number" || ' +
+    name+' && typeof '+name+' === "object" && ' +
+    'Object.prototype.toString.call('+name+') === "[object Number]" || false'
 }
 
 types.integer = function(name) {
@@ -63,7 +67,9 @@ types.integer = function(name) {
 }
 
 types.string = function(name) {
-  return 'typeof '+name+' === "string"'
+  return 'typeof '+name+' === "string" || ' +
+    name+' && typeof '+name+' === "object" && ' +
+    'Object.prototype.toString.call('+name+') === "[object String]" || false'
 }
 
 var unique = function(array) {
