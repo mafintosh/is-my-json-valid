@@ -72,25 +72,15 @@ console.log(validate('ab')) // false
 
 ## Performance
 
-This is module is *fast*
+is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.
 
-When running the [cosmicrealms.com benchmark](http://cosmicrealms.com/blog/2014/02/07/benchmark-of-node-dot-js-json-validation-modules-part-2/) it yields
-the following results on my macbook air
+At the time of writing, is-my-json-valid is the __fastest validator__ when running
 
-```
-is-my-json-valid v4 total time (632) and per document time: 0.00316
-amanda v3 total time (27121) and per document time: 1.35605
-jayschema v4 total time (99449) and per document time: 4.97245
-joi v3 total time (11949) and per document time: 0.59745
-json-gate v3 total time (1443) and per document time: 0.07215
-json-schema v3 total time (1318) and per document time: 0.0659
-JSV v3 total time (33495) and per document time: 1.67475
-schema v2 total time (1309) and per document time: 0.06545
-tv4 v4 total time (703) and per document time: 0.03515
-z-schema v4 total time (3188) and per document time: 0.1594
-```
+* [json-schema-benchmark](https://github.com/Muscula/json-schema-benchmark)
+* [cosmicreals.com benchmark](http://cosmicrealms.com/blog/2014/08/29/benchmark-of-node-dot-js-json-validation-modules-part-3/)
+* [jsck benchmark](https://github.com/pandastrike/jsck/issues/72#issuecomment-70992684)
 
-As seen above `is-my-json-valid` is 2500x faster than the slowest and ~20x faster than the second fastest
+If you know any other relevant benchmarks open a PR and I'll add them.
 
 ## License
 
