@@ -64,5 +64,33 @@
                 "valid": false
             }
         ]
+    },
+    {
+        "description": "anyOf schema",
+        "schema": {
+            "properties":{
+                "password": {"type":"string", "required": true}
+            },
+            "anyOf": [
+                { "properties": {"email": {"type": "string", "required": true}}
+                },
+                { "properties": {"resetHash": {"type": "string", "required": true}}
+                }
+            ]
+        },
+        "tests": [
+            {   "description": "anyOf - with properties, password",
+                "data": {"password": "123456", "email": "test@test.com"},
+                "valid": true
+            },
+            {   "description": "anyOf - with properties, resetHash",
+                "data": {"password": "123456", "resetHash": "ab01fc7b0"},
+                "valid": true
+            },
+            {   "description": "anyOf with no properties",
+                "data": {"password": "123456"},
+                "valid": false
+            }
+        ]
     }
 ]
