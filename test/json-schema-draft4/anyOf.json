@@ -68,13 +68,18 @@
     {
         "description": "anyOf schema",
         "schema": {
-            "properties":{
-                "password": {"type":"string", "required": true}
-            },
             "anyOf": [
-                { "properties": {"email": {"type": "string", "required": true}}
+                { "properties": 
+                    {"email": {"type": "string", "required": true},
+                    "password": {"type":"string", "required": true}
+                    },
+                  "additionalProperties": false
                 },
-                { "properties": {"resetHash": {"type": "string", "required": true}}
+                { "properties": 
+                    { "resetHash": {"type": "string", "required": true},
+                      "password": {"type":"string", "required": true}
+                    },
+                  "additionalProperties": false
                 }
             ]
         },
