@@ -186,3 +186,18 @@ tape('do not mutate schema', function(t) {
   t.same(sch, copy, 'did not mutate')
   t.end()
 })
+
+tape('#toJSON()', function(t) {
+  var schema = {
+    required: true,
+    type: 'object',
+    properties: {
+      hello: {type:'string', required:true}
+    }
+  }
+
+  var validate = validator(schema)
+
+  t.deepEqual(validate.toJSON(), schema, 'should return original schema')
+  t.end()
+})

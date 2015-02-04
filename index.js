@@ -512,7 +512,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   })
 
   validate.toJSON = function() {
-    return sch
+    return schema
   }
 
   return validate
