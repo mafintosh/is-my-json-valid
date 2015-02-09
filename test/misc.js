@@ -201,3 +201,17 @@ tape('#toJSON()', function(t) {
   t.deepEqual(validate.toJSON(), schema, 'should return original schema')
   t.end()
 })
+
+tape('external schemas', function(t) {
+  var ext = {type: 'string'}
+  var schema = {
+    required: true,
+    $ref: '#ext'
+  }
+
+  var validate = validator(schema, {schemas: {ext:ext}})
+
+  t.ok(validate('hello string'), 'is a string')
+  t.notOk(validate(42), 'not a string')
+  t.end()
+})

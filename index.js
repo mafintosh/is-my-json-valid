@@ -4,7 +4,7 @@ var jsonpointer = require('jsonpointer')
 var xtend = require('xtend')
 var formats = require('./formats')
 
-var get = function(obj, ptr) {
+var get = function(obj, additionalSchemas, ptr) {
   if (/^https?:\/\//.test(ptr)) return null
 
   var visit = function(sub) {
@@ -24,7 +24,8 @@ var get = function(obj, ptr) {
   try {
     return jsonpointer.get(obj, decodeURI(ptr))
   } catch (err) {
-    return null
+    var other = additionalSchemas[ptr] || additionalSchemas[ptr.replace(/^#/, '')]
+    return other || null
   }
 }
 
@@ -279,7 +280,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.$ref) {
-      var sub = get(root, node.$ref)
+      var sub = get(root, opts && opts.schemas || {}, node.$ref)
       if (sub) {
         var fn = cache[node.$ref]
         if (!fn) {
