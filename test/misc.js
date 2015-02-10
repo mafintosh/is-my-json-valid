@@ -215,3 +215,31 @@ tape('external schemas', function(t) {
   t.notOk(validate(42), 'not a string')
   t.end()
 })
+
+tape('nested required array decl', function(t) {
+  var schema = {
+    properties: {
+      x: {
+        type: 'object',
+        properties: {
+          y: {
+            type: 'object',
+            properties: {
+              z: {
+                type: 'string'
+              }
+            },
+            required: ['z']
+          }
+        }
+      }
+    },
+    required: ['x']
+  }
+
+  var validate = validator(schema)
+
+  t.ok(validate({x: {}}), 'should be valid')
+  t.notOk(validate({}), 'should not be valid')
+  t.end()
+})
