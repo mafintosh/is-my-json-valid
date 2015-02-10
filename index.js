@@ -141,16 +141,6 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('if (%s === undefined) {', name)
       error('is required')
       validate('} else {')
-    } else if (node.required) {
-      indent++
-
-      var isUndefined = function(req) {
-        return genobj(name, req) + ' === undefined'
-      }
-
-      validate('if (%s) {', node.required.map(isUndefined).join(' || ') || 'false')
-      error('missing required properties')
-      validate('} else {')
     } else {
       indent++
       validate('if (%s !== undefined) {', name)
@@ -190,6 +180,17 @@ var compile = function(schema, cache, root, reporter, opts) {
       else validate('if (!%s.test(%s)) {', n, name)
       error('must be '+node.format+' format')
       validate('}')
+    }
+
+    if (Array.isArray(node.required)) {
+      var isUndefined = function(req) {
+        return genobj(name, req) + ' === undefined'
+      }
+
+      validate('if ((%s) && (%s)) {', type !== 'object' ? types.object(name) : 'true', node.required.map(isUndefined).join(' || ') || 'false')
+      error('missing required properties')
+      validate('} else {')
+      indent++
     }
 
     if (node.uniqueItems) {
