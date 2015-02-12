@@ -107,7 +107,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
-  var visit = function(name, node, reporter) {
+  var visit = function(name, node, reporter, filter) {
     var properties = node.properties
     var type = node.type
     var tuple = false
@@ -167,7 +167,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       } else if (node.additionalItems) {
         var i = genloop()
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
-        visit(name+'['+i+']', node.additionalItems, reporter)
+        visit(name+'['+i+']', node.additionalItems, reporter, filter)
         validate('}')
       }   
     }
@@ -237,7 +237,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         }
         if (typeof deps === 'object') {
           validate('if (%s !== undefined) {', genobj(name, key))
-          visit(name, deps, reporter)
+          visit(name, deps, reporter, filter)
           validate('}')
         }
       })
@@ -268,9 +268,12 @@ var compile = function(schema, cache, root, reporter, opts) {
           ('if (%s) {', additionalProp)
 
       if (node.additionalProperties === false) {
+        if(filter) {
+          validate('delete %s', name+'['+keys+'['+i+']]')
+        }
         error('has additional properties')
       } else {
-        visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter)
+        visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter)
       }
 
       validate
@@ -301,7 +304,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.not) {
       var prev = gensym('prev')
       validate('var %s = errors', prev)
-      visit(name, node.not, false)
+      visit(name, node.not, false, filter)
       validate('if (%s === errors) {', prev)
       error('negative schema matches')
       validate('} else {')
@@ -314,7 +317,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
       var i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
-      visit(name+'['+i+']', node.items, reporter)
+      visit(name+'['+i+']', node.items, reporter, filter)
       validate('}')
 
       if (type !== 'array') validate('}')
@@ -331,7 +334,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       Object.keys(node.patternProperties).forEach(function(key) {
         var p = patterns(key)
         validate('if (%s.test(%s)) {', p, keys+'['+i+']')
-        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter)
+        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter)
         validate('}')
       })
 
@@ -350,7 +353,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.allOf) {
       node.allOf.forEach(function(sch) {
-        visit(name, sch, reporter)
+        visit(name, sch, reporter, filter)
       })
     }
 
@@ -364,7 +367,7 @@ var compile = function(schema, cache, root, reporter, opts) {
           validate('if (errors !== %s) {', prev)
             ('errors = %s', prev)
         }
-        visit(name, sch, false)
+        visit(name, sch, false, false)
       })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
@@ -383,7 +386,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, false)
+        visit(name, sch, false, false)
         validate('if (%s === errors) {', prev)
           ('%s++', passes)
         ('} else {')
@@ -495,7 +498,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       ('validate.errors = null')
       ('var errors = 0')
 
-  visit('data', schema, reporter)
+  visit('data', schema, reporter, opts && opts.filter)
 
   validate
       ('return errors === 0')
