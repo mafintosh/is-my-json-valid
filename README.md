@@ -106,7 +106,7 @@ var filter = validator.filter({
 })
 
 var doc = {hello: 'world', notInSchema: true}
-console.log(doc) // {hello: 'world'}
+console.log(filter(doc)) // {hello: 'world'}
 ```
 
 ## Performance
