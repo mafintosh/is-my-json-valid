@@ -92,22 +92,20 @@ validate(42) // return false
 ```
 
 ## Filtering away additional properties
+
 is-my-json-valid supports filtering away properties not in the schema
+
 ``` js
-var filter = validator({
+var filter = validator.filter({
   required: true,
   type: 'object',
   properties: {
     hello: {type: 'string', required: true}
   },
   additionalProperties: false
-}, {
-  filter: true
 })
 
 var doc = {hello: 'world', notInSchema: true}
-
-console.log(filter(doc)) // false
 console.log(doc) // {hello: 'world'}
 ```
 
