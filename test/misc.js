@@ -241,5 +241,6 @@ tape('nested required array decl', function(t) {
 
   t.ok(validate({x: {}}), 'should be valid')
   t.notOk(validate({}), 'should not be valid')
+  t.ok(validate.errors[0].field === 'data.x', 'should output the missing field')
   t.end()
 })
