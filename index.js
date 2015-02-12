@@ -85,6 +85,7 @@ var toType = function(node) {
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts}
+  var verbose = opts ? !!opts.verbose : false;
 
   var syms = {}
   var gensym = function(name) {
@@ -130,10 +131,12 @@ var compile = function(schema, cache, root, reporter, opts) {
 
       var n = gensym('error')
       scope[n] = {field:formatName(name), message:msg}
-      validate
-        ('errors++')
-        ('if (validate.errors === null) validate.errors = []')
-        ('validate.errors.push(%s)', n)
+      validate('errors++')
+      validate('if (validate.errors === null) validate.errors = []')
+      if (verbose) {
+        validate('%s.value = %s', n, name)
+      }
+      validate('validate.errors.push(%s)', n)
     }
 
     if (node.required === true) {
