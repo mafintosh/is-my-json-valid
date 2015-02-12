@@ -184,13 +184,12 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (Array.isArray(node.required)) {
       var isUndefined = function(req) {
-        return genobj(name, req) + ' === undefined'
+        validate('if (%s === undefined) {', genobj(name, req))
+        error('is required')
+        validate('}')
       }
 
-      validate('if ((%s) && (%s)) {', type !== 'object' ? types.object(name) : 'true', node.required.map(isUndefined).join(' || ') || 'false')
-      error('missing required properties')
-      validate('} else {')
-      indent++
+      node.required.map(isUndefined)
     }
 
     if (node.uniqueItems) {
