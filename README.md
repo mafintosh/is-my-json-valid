@@ -109,6 +109,28 @@ var doc = {hello: 'world', notInSchema: true}
 console.log(filter(doc)) // {hello: 'world'}
 ```
 
+## Verbose mode outputs the value on errors
+
+is-my-json-valid outputs the value causing an error when verbose is set to true
+
+``` js
+var validate = validator({
+  required: true,
+  type: 'object',
+  properties: {
+    hello: {
+      required: true,
+      type: 'string'
+    }
+  }
+}, {
+  verbose: true
+})
+
+validate({hello: 100});
+console.log(validate.errors) // {field: 'data.hello', message: 'is the wrong type', value: 100}
+```
+
 ## Performance
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.

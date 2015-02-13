@@ -243,3 +243,23 @@ tape('nested required array decl', function(t) {
   t.notOk(validate({}), 'should not be valid')
   t.end()
 })
+
+tape('verbose mode', function(t) {
+  var schema = {
+    required: true,
+    type: 'object',
+    properties: {
+      hello: {
+        required: true,
+        type: 'string'
+      }
+    }
+  };
+
+  var validate = validator(schema, {verbose: true})
+
+  t.ok(validate({hello: 'string'}), 'should be valid')
+  t.notOk(validate({hello: 100}), 'should not be valid')
+  t.ok(validate.errors[0].value === 100, 'error object should contain the invalid value')
+  t.end()
+})
