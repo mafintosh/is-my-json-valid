@@ -128,19 +128,18 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     var indent = 0
     var error = function(msg, field) {
-      if (reporter === false) {
-        validate('errors++')
-        return
-      }
-
-      var n = gensym('error')
-      scope[n] = {field:formatName(field || name), message:msg}
       validate('errors++')
-      validate('if (validate.errors === null) validate.errors = []')
-      if (verbose) {
-        validate('%s.value = %s', n, name)
+      if (reporter === true) {
+        validate('if (validate.errors === null) validate.errors = []')
+        if (verbose) {
+          validate('validate.errors.push({field:"%s",message:"%s",value:%s})', formatName(field || name), msg, name)
+        }
+        else {
+          var n = gensym('error')
+          scope[n] = {field:formatName(field || name), message:msg}
+          validate('validate.errors.push(%s)', n)
+        }
       }
-      validate('validate.errors.push(%s)', n)
     }
 
     if (node.required === true) {
