@@ -30,7 +30,11 @@ var get = function(obj, additionalSchemas, ptr) {
 }
 
 var formatName = function(field) {
-  return field.replace(/\[[^\]]+\]/g, '.*')
+  var pattern = /\[[^\[\]"]+\]/;
+  while(pattern.test(field)){
+    field = field.replace(pattern, '.*');
+  }
+  return field
 }
 
 var types = {}
