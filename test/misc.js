@@ -32,10 +32,13 @@ tape('additional props', function(t) {
   var validate = validator({
     type: 'object',
     additionalProperties: false
+  }, {
+    verbose: true
   })
 
   t.ok(validate({}))
   t.notOk(validate({foo:'bar'}))
+  t.ok(validate.errors[0].value === 'data.foo', 'should output the property not allowed in verbose mode')
   t.end()
 })
 
