@@ -267,3 +267,11 @@ tape('verbose mode', function(t) {
   t.ok(validate.errors[0].value === 100, 'error object should contain the invalid value')
   t.end()
 })
+
+tape('Date.now() is an integer', function(t) {
+  var schema = {type: 'integer'}
+  var validate = validator(schema)
+
+  t.ok(validate(Date.now()), 'is integer')
+  t.end()
+})
