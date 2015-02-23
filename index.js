@@ -499,7 +499,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (properties) {
       Object.keys(properties).forEach(function(p) {
-        visit(genobj(name, p), properties[p], reporter)
+        visit(genobj(name, p), properties[p], reporter, filter)
       })
     }
 
