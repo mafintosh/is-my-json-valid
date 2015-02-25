@@ -1,6 +1,6 @@
 {
   "name": "is-my-json-valid",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "description": "A JSONSchema validator that uses code generation to be extremely fast",
   "main": "index.js",
   "dependencies": {
