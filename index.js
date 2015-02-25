@@ -284,7 +284,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
       if (node.additionalProperties === false) {
         if (filter) validate('delete %s', name+'['+keys+'['+i+']]')
-        error('has additional properties', null, '"'+name+'."+'+keys+'['+i+']')
+        error('has additional properties', null, JSON.stringify(name+'.') + " + " + keys + '['+i+']')
       } else {
         visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter)
       }
