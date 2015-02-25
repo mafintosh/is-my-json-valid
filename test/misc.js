@@ -244,7 +244,7 @@ tape('nested required array decl', function(t) {
 
   t.ok(validate({x: {}}), 'should be valid')
   t.notOk(validate({}), 'should not be valid')
-  t.ok(validate.errors[0].field === 'data.x', 'should output the missing field')
+  t.strictEqual(validate.errors[0].field, 'data.x', 'should output the missing field')
   t.end()
 })
 
@@ -264,7 +264,37 @@ tape('verbose mode', function(t) {
 
   t.ok(validate({hello: 'string'}), 'should be valid')
   t.notOk(validate({hello: 100}), 'should not be valid')
-  t.ok(validate.errors[0].value === 100, 'error object should contain the invalid value')
+  t.strictEqual(validate.errors[0].value, 100, 'error object should contain the invalid value')
+  t.end()
+})
+
+tape('additional props in verbose mode', function(t) {
+  var schema = {
+    type: 'object',
+    required: true,
+    additionalProperties: false,
+    properties: {
+      foo: {
+        type: 'string'
+      },
+      'hello world': {
+        type: 'object',
+        required: true,
+        additionalProperties: false,
+        properties: {
+          foo: {
+            type: 'string'
+          }
+        }
+      }
+    }
+  };
+
+  var validate = validator(schema, {verbose: true})
+
+  validate({'hello world': {bar: 'string'}});
+
+  t.strictEqual(validate.errors[0].value, 'data["hello world"].bar', 'should output the path to the additional prop in the error')
   t.end()
 })
 
