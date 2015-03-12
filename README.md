@@ -131,6 +131,29 @@ validate({hello: 100});
 console.log(validate.errors) // {field: 'data.hello', message: 'is the wrong type', value: 100}
 ```
 
+## Greedy mode tries to validate as much as possible
+
+By default is-my-json-valid bails on first validation error but when greedy is
+set to true it tries to validate as much as possible:
+
+``` js
+var validate = validator({
+  type: 'object',
+  properties: {
+    x: {
+      type: 'number'
+    }
+  },
+  required: ['x', 'y']
+}, {
+  greedy: true
+});
+
+validate({x: 'string'});
+console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
+                             //  {field: 'data.x', message: 'is the wrong type'}]
+```
+
 ## Performance
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.

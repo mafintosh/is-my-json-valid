@@ -88,6 +88,8 @@ var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts}
   var verbose = opts ? !!opts.verbose : false;
+  var greedy = opts && opts.greedy !== undefined ?
+    opts.greedy : false;
 
   var syms = {}
   var gensym = function(name) {
@@ -203,8 +205,10 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('var missing = 0')
       node.required.map(checkRequired)
       validate('}');
-      validate('if (missing === 0) {')
-      indent++
+      if (!greedy) {
+        validate('if (missing === 0) {')
+        indent++
+      }
     }
 
     if (node.uniqueItems) {
