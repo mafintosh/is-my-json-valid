@@ -314,6 +314,9 @@ var compile = function(schema, cache, root, reporter, opts) {
         validate('if (!(%s(%s))) {', n, name)
         error('referenced schema does not match')
         validate('}')
+      } else {
+        validate('validate.missing = validate.missing || []')
+        validate('validate.missing.push("%s")', node.$ref);
       }
     }
 
