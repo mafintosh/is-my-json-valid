@@ -140,6 +140,17 @@ var compile = function(schema, cache, root, reporter, opts) {
         }
       }
     }
+    var errorFromSym = function(sym) {
+      validate('errors++')
+      if (reporter === true) {
+        validate('if (validate.errors === null) validate.errors = []')
+        if (verbose) {
+          validate('validate.errors.push({field:%s,message:%s,value:%s})', JSON.stringify(formatName(name)), sym, name)
+        } else {
+          validate('validate.errors.push({field:%s,message:%s})', JSON.stringify(formatName(name)), sym)
+        }
+      }
+    }
 
     if (node.required === true) {
       indent++
@@ -182,10 +193,19 @@ var compile = function(schema, cache, root, reporter, opts) {
       var n = gensym('format')
       scope[n] = fmts[node.format]
 
-      if (typeof scope[n] === 'function') validate('if (!%s(%s)) {', n, name)
-      else validate('if (!%s.test(%s)) {', n, name)
-      error('must be '+node.format+' format')
-      validate('}')
+      if (typeof scope[n] === 'function') {
+        var r = gensym('result')
+        validate('%s = %s(%s)', r, n, name)
+        validate('if (!%s) {', r)
+        error('must be '+node.format+' format')
+        validate('} else if (%s instanceof Error) {', r)
+        errorFromSym(n + '.message')
+        validate('}')
+      } else {
+        validate('if (!%s.test(%s)) {', n, name)
+        error('must be '+node.format+' format')
+        validate('}')
+      }
       if (type !== 'string' && formats[node.format]) validate('}')
     }
 
