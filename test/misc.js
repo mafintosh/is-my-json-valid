@@ -278,6 +278,38 @@ tape('external schemas', function(t) {
   t.end()
 })
 
+tape('external schema nested errors', function(t) {
+  var schemas = {
+    outer: {
+      type: 'object',
+      properties: {
+        foo: {
+          '$ref': '#inner'
+        }
+      }
+    },
+    inner: {
+      type: 'object',
+      properties: {
+        bar: {
+          type: 'string',
+        },
+        zim: {
+          type: 'number'
+        }
+      }
+    },
+  }
+
+  var validate = validator(schemas.outer, {schemas: schemas})
+
+  t.notOk(validate({foo: {bar: 42, zim: 'abc'}}), 'invalid')
+  t.equal(validate.errors.length, 2, 'two nested errors')
+  t.equal(validate.errors[0].field, 'data.foo.bar', 'errors should nest')
+  t.equal(validate.errors[1].field, 'data.foo.zim', 'errors should nest')
+  t.end()
+})
+
 tape('nested required array decl', function(t) {
   var schema = {
     properties: {
