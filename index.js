@@ -141,7 +141,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
     }
 
-    if (node.required === true) {
+    if (node.required === true && opts.requiredV3 === true) {
       indent++
       validate('if (%s === undefined) {', name)
       error('is required')
@@ -511,6 +511,9 @@ var compile = function(schema, cache, root, reporter, opts) {
 
   var validate = genfun
     ('function validate(data) {')
+      ('if (data === undefined) {')
+        ('throw new Error("`undefined` is not a valid JSON value");')
+      ('}')
       ('validate.errors = null')
       ('var errors = 0')
 
@@ -541,7 +544,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
 module.exports = function(schema, opts) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
-  return compile(schema, {}, schema, true, opts)
+  return compile(schema, {}, schema, true, xtend({requiredV3: true}, opts))
 }
 
 module.exports.filter = function(schema, opts) {

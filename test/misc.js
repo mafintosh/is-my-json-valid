@@ -15,7 +15,7 @@ tape('simple', function(t) {
   var validate = validator(schema)
 
   t.ok(validate({hello: 'world'}), 'should be valid')
-  t.notOk(validate(), 'should be invalid')
+  t.notOk(validate(null), 'should be invalid')
   t.notOk(validate({}), 'should be invalid')
   t.end()
 })
@@ -111,7 +111,7 @@ tape('array', function(t) {
   })
 
   t.notOk(validate({}), 'wrong type')
-  t.notOk(validate(), 'is required')
+  t.notOk(validate(null), 'is required')
   t.ok(validate(['test']))
   t.end()
 })
@@ -362,5 +362,43 @@ tape('Date.now() is an integer', function(t) {
   var validate = validator(schema)
 
   t.ok(validate(Date.now()), 'is integer')
+  t.end()
+})
+
+tape('undefined is invalid input', function(t) {
+  var schema = {type: 'array'}
+  var validate = validator(schema)
+  t.throws(function() {
+    validate(undefined)
+  }, 'undefined is not valid JSON')
+  t.end()
+})
+
+tape('disable v3-style required', function(t) {
+  var schema = {
+    type: 'object',
+    properties: {
+      prop: {
+        type: 'string',
+        required: true
+      }
+    }
+  };
+  var validateV4 = validator(schema, {
+    requiredV3: false
+  });
+  var validateV3 = validator(schema, {
+    requiredV3: true
+  });
+  var validate = validator(schema);
+  // Sanity check that both can validate with the property
+  t.ok(validateV4({prop: 'a string'}), 'should validate with prop');
+  t.ok(validateV3({prop: 'a string'}), 'should validate with prop');
+  // Check that requiredV3: false causes `required: true` to be ignored
+  t.ok(validateV4({}), 'v4 should validate without prop');
+  t.notOk(validateV3({}), 'v3 should not validate without prop');
+  // Check that `requiredV3: true` is default
+  t.ok(validate({prop: 'a string'}), 'should validate with prop');
+  t.notOk(validate({}), 'v3 should not validate without prop');
   t.end()
 })
