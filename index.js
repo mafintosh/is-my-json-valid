@@ -112,6 +112,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
+  var validate;
   var visit = function(name, node, reporter, filter) {
     var properties = node.properties
     var type = node.type
@@ -509,7 +510,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     while (indent--) validate('}')
   }
 
-  var validate = genfun
+  validate = genfun
     ('function validate(data) {')
       ('validate.errors = null')
       ('var errors = 0')
