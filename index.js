@@ -141,6 +141,13 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
     }
 
+    if (node.default !== undefined && opts && opts.setDefault === true) {
+      validate
+        ('if (%s === undefined) {', name)
+          ('%s = %s', name, JSON.stringify(node.default))
+        ('}')
+    }
+
     if (node.required === true) {
       indent++
       validate('if (%s === undefined) {', name)
