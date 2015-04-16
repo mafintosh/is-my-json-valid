@@ -1,7 +1,7 @@
 var tape = require('tape')
 var cosmic = require('./fixtures/cosmic')
 var validator = require('../')
-var validatorRequire = require('../require')
+var validatorRequire = require('../lib/require')
 
 tape('simple', function(t) {
   var schema = {

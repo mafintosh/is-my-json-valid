@@ -3,6 +3,10 @@
   "version": "2.10.1",
   "description": "A JSONSchema validator that uses code generation to be extremely fast",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/"
+  ],
   "dependencies": {
     "generate-function": "^2.0.0",
     "generate-object-property": "^1.1.0",
