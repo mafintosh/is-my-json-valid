@@ -41,7 +41,7 @@ types.any = function() {
   return 'true'
 }
 
-types.null = function(name) {
+types[null] = function(name) {
   return name+' === null'
 }
 
@@ -223,8 +223,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       if (type !== 'array') validate('}')
     }
 
-    if (node.enum) {
-      var complex = node.enum.some(function(e) {
+    if (node['enum']) {
+      var complex = node['enum'].some(function(e) {
         return typeof e === 'object'
       })
 
@@ -236,7 +236,7 @@ var compile = function(schema, cache, root, reporter, opts) {
           return name+' !== '+JSON.stringify(e)
         }
 
-      validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false')
+      validate('if (%s) {', node['enum'].map(compare).join(' && ') || 'false')
       error('must be an enum value')
       validate('}')
     }
