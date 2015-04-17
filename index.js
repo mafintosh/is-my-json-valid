@@ -128,11 +128,15 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     var indent = 0
     var error = function(msg, prop, value) {
+      var field = JSON.stringify(formatName(prop || name))
+      var message = JSON.stringify(msg)
       validate('errors++')
       if (reporter === true) {
-        validate('if (validate.errors === null) validate.errors = []')
+        validate
+            ('if (validate.errors === null) validate.errors = []')
+            ('validate.error += %s + " " + %s + " \\n"', field, message)
         if (verbose) {
-          validate('validate.errors.push({field:%s,message:%s,value:%s})', JSON.stringify(formatName(prop || name)), JSON.stringify(msg), value || name)
+          validate('validate.errors.push({field:%s,message:%s,value:%s})', field, message, value || name)
         } else {
           var n = gensym('error')
           scope[n] = {field:formatName(prop || name), message:msg}
@@ -512,6 +516,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   var validate = genfun
     ('function validate(data) {')
       ('validate.errors = null')
+      ('validate.error = ""')
       ('var errors = 0')
 
   visit('data', schema, reporter, opts && opts.filter)
@@ -522,15 +527,6 @@ var compile = function(schema, cache, root, reporter, opts) {
 
   validate = validate.toFunction(scope)
   validate.errors = null
-
-  validate.__defineGetter__('error', function() {
-    if (!validate.errors) return ''
-    return validate.errors
-      .map(function(err) {
-        return err.field+' '+err.message
-      })
-      .join('\n')
-  })
 
   validate.toJSON = function() {
     return schema
