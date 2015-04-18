@@ -101,6 +101,34 @@ tape('additional props', function(t) {
   t.end()
 })
 
+tape('banUnknownProperties', function(t) {
+  var validate = validator({
+    type: 'object',
+  }, {
+    verbose: true,
+    banUnknownProperties: true
+  })
+
+  t.ok(validate({}))
+  t.notOk(validate({foo:'bar'}))
+  t.ok(validate.errors[0].value === 'data.foo', 'should output the property not allowed in verbose mode')
+  t.end()
+})
+
+tape('banUnknownProperties overriden by additionalProperties', function(t) {
+  var validate = validator({
+    type: 'object',
+    additionalProperties: true
+  }, {
+    verbose: true,
+    banUnknownProperties: true
+  })
+
+  t.ok(validate({}))
+  t.ok(validate({foo:'bar'}))
+  t.end()
+})
+
 tape('array', function(t) {
   var validate = validator({
     type: 'array',
