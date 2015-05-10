@@ -364,3 +364,36 @@ tape('Date.now() is an integer', function(t) {
   t.ok(validate(Date.now()), 'is integer')
   t.end()
 })
+
+tape('field shows item index in arrays', function(t) {
+  var schema = {
+    type: 'array',
+    items: {
+      type: 'array',
+      items: {
+        properties: {
+          foo: {
+            type: 'string',
+            required: true
+          }
+        }
+      }
+    }
+  }
+
+  var validate = validator(schema)
+
+  validate([
+    [
+      { foo: 'test' },
+      { foo: 'test' }
+    ],
+    [
+      { foo: 'test' },
+      { baz: 'test' }
+    ]
+  ])
+
+  t.strictEqual(validate.errors[0].field, 'data.1.1.foo', 'should output the field with specific index of failing item in the error')
+  t.end()
+})
