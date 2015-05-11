@@ -173,7 +173,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
         visit(name+'['+i+']', node.additionalItems, reporter, filter)
         validate('}')
-      }   
+      }
     }
 
     if (node.format && fmts[node.format]) {
@@ -306,12 +306,21 @@ var compile = function(schema, cache, root, reporter, opts) {
           cache[node.$ref] = function proxy(data) {
             return fn(data)
           }
-          fn = compile(sub, cache, root, false, opts)
+          fn = compile(sub, cache, root, true, opts)
         }
         var n = gensym('ref')
         scope[n] = fn
         validate('if (!(%s(%s))) {', n, name)
-        error('referenced schema does not match')
+        if (reporter === true) {
+          validate('if (validate.errors === null) validate.errors = []')
+        }
+        validate('%s.errors.forEach(function(e) {', n)
+        validate('errors++')
+        if (reporter === true) {
+          validate('e.field = %j + e.field.substr(4)', formatName(name))
+          validate('validate.errors.push(e)')
+        }
+        validate('})')
         validate('}')
       }
     }
@@ -378,7 +387,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
           validate('var %s = errors', prev)
-        } else {          
+        } else {
           validate('if (errors !== %s) {', prev)
             ('errors = %s', prev)
         }
@@ -429,7 +438,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length > %d) {', name, node.maxProperties)
       error('has more properties than allowed')
       validate('}')
@@ -439,7 +448,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length < %d) {', name, node.minProperties)
       error('has less properties than allowed')
       validate('}')
@@ -449,7 +458,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length > %d) {', name, node.maxItems)
       error('has more items than allowed')
       validate('}')
@@ -459,7 +468,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length < %d) {', name, node.minItems)
       error('has less items than allowed')
       validate('}')
