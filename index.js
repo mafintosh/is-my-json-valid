@@ -41,7 +41,7 @@ types.any = function() {
   return 'true'
 }
 
-types[null] = function(name) {
+types['null'] = function(name) {
   return name+' === null'
 }
 
