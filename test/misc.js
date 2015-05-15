@@ -304,6 +304,7 @@ tape('top-level external schema', function(t) {
   })
   t.ok(validate({name:"alice", sex:"female"}), 'is an object')
   t.notOk(validate({name:"alice", sex: "bob"}), 'recognizes external schema')
+  t.notOk(validate({name:2, sex: "female"}), 'recognizes external schema')
   t.end()
 })
 
