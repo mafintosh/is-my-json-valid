@@ -24,7 +24,24 @@ var get = function(obj, additionalSchemas, ptr) {
   try {
     return jsonpointer.get(obj, decodeURI(ptr))
   } catch (err) {
-    var other = additionalSchemas[ptr] || additionalSchemas[ptr.replace(/^#/, '')]
+    var end = ptr.indexOf('#')
+    var other
+    // external reference
+    if (end !== 0) {
+      // fragment doesn't exist.
+      if (end === -1) {
+        other = additionalSchemas[ptr]
+      } else {
+        var ext = ptr.slice(0, end)
+        other = additionalSchemas[ext]
+        var fragment = ptr.slice(end).replace(/^#/, '')
+        try {
+          return jsonpointer.get(other, fragment)
+        } catch (err) {}
+      }
+    } else {
+      other = additionalSchemas[ptr]
+    }
     return other || null
   }
 }

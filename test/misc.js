@@ -278,6 +278,36 @@ tape('external schemas', function(t) {
   t.end()
 })
 
+tape('top-level external schema', function(t) {
+  var defs = {
+    "string": {
+      type: "string"
+    },
+    "sex": {
+      type: "string",
+      enum: ["male", "female", "other"]
+    }
+  }
+  var schema = {
+    type: "object",
+    properties: {
+      "name": { $ref: "definitions.json#/string" },
+      "sex": { $ref: "definitions.json#/sex" }
+    },
+    required: ["name", "sex"]
+  }
+
+  var validate = validator(schema, {
+    schemas: {
+      "definitions.json": defs
+    }
+  })
+  t.ok(validate({name:"alice", sex:"female"}), 'is an object')
+  t.notOk(validate({name:"alice", sex: "bob"}), 'recognizes external schema')
+  t.notOk(validate({name:2, sex: "female"}), 'recognizes external schema')
+  t.end()
+})
+
 tape('nested required array decl', function(t) {
   var schema = {
     properties: {
