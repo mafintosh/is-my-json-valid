@@ -19,14 +19,13 @@ Simply pass a schema to compile it
 var validator = require('is-my-json-valid')
 
 var validate = validator({
-  required: true,
   type: 'object',
   properties: {
     hello: {
-      required: true,
       type: 'string'
     }
-  }
+  },
+  required: ['hello']
 })
 
 console.log('should be valid', validate({hello: 'world'}))
@@ -58,7 +57,6 @@ If you want to add your own custom formats pass them as the formats options to t
 ``` js
 var validate = validator({
   type: 'string',
-  required: true,
   format: 'only-a'
 }, {
   formats: {
@@ -76,7 +74,6 @@ You can pass in external schemas that you reference using the `$ref` attribute a
 
 ``` js
 var ext = {
-  required: true,
   type: 'string'
 }
 
@@ -97,11 +94,11 @@ is-my-json-valid supports filtering away properties not in the schema
 
 ``` js
 var filter = validator.filter({
-  required: true,
   type: 'object',
   properties: {
-    hello: {type: 'string', required: true}
+    hello: {type: 'string'}
   },
+  required: ['hello'],
   additionalProperties: false
 })
 
@@ -115,14 +112,13 @@ is-my-json-valid outputs the value causing an error when verbose is set to true
 
 ``` js
 var validate = validator({
-  required: true,
   type: 'object',
   properties: {
     hello: {
-      required: true,
       type: 'string'
     }
-  }
+  },
+  required: ['hello']
 }, {
   verbose: true
 })
