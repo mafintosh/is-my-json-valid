@@ -286,16 +286,21 @@ tape('top-level external schema', function(t) {
     "sex": {
       type: "string",
       enum: ["male", "female", "other"]
+    },
+    "recurse": {
+      type: "object",
+      properties: {
+        "name": { $ref: "definitions.json#/string" },
+        "sex": { $ref: "definitions.json#/sex" },
+        "partner": { $ref: "definitions.json#/recurse" }
+      },
+      required: ["name", "sex"]
     }
   }
   var schema = {
-    type: "object",
-    properties: {
-      "name": { $ref: "definitions.json#/string" },
-      "sex": { $ref: "definitions.json#/sex" }
-    },
-    required: ["name", "sex"]
+    $ref: "definitions.json#/recurse"
   }
+
 
   var validate = validator(schema, {
     schemas: {
@@ -304,7 +309,22 @@ tape('top-level external schema', function(t) {
   })
   t.ok(validate({name:"alice", sex:"female"}), 'is an object')
   t.notOk(validate({name:"alice", sex: "bob"}), 'recognizes external schema')
+  t.strictEqual(validate.errors[0].field, 'data.sex', 'should output error')
   t.notOk(validate({name:2, sex: "female"}), 'recognizes external schema')
+  t.strictEqual(validate.errors[0].field, 'data.name', 'should output error')
+
+  var o = {
+    name: 2,
+    sex: "female",
+    partner: {
+      name: "alice",
+      sex: "bob"
+    }
+  }
+  t.notOk(validate(o), 'recognizes external schema')
+  t.strictEqual(validate.errors.length, 2, 'should have 2 errors')
+  t.strictEqual(validate.errors[0].field, 'data.name', 'should output error')
+  t.strictEqual(validate.errors[1].field, 'data.partner.sex', 'should output error')
   t.end()
 })
 
