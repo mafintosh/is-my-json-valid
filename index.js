@@ -134,7 +134,7 @@ var unique = function(array) {
 
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
-  var errMsgs = getErrMsgs(opts.errMsgs)
+  var errMsgs = getErrMsgs(opts ? opts.errMsgs : null);
   var scope = {unique:unique, formats:fmts}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
