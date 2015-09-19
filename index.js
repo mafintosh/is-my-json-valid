@@ -107,7 +107,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   var scope = {unique:unique, formats:fmts}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
-    opts.greedy : false;
+      opts.greedy : false;
 
   var syms = {}
   var gensym = function(name) {
@@ -130,7 +130,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
-  var visit = function(name, node, reporter, filter) {
+  var visit = function(name, node, reporter, filter, isInnerError) {
     var properties = node.properties
     var type = node.type
     var tuple = false
@@ -145,14 +145,30 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     var indent = 0
-    var error = function(msg, prop, value) {
+    var error = function(msg, prop, value, isComplex) {
       validate('errors++')
       if (reporter === true) {
         validate('if (validate.errors === null) validate.errors = []')
-        if (verbose) {
-          validate('validate.errors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+        validate('if (validate.innerErrors === null) validate.innerErrors = []')
+        if(isInnerError && !isComplex){
+          if (verbose) {
+            validate('validate.innerErrors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+          } else {
+            validate('validate.innerErrors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          }
+        } else if(isComplex){
+          if (verbose) {
+            validate('validate.errors.push({field:%s,message:%s,value:%s, innerErrors: validate.innerErrors})', formatName(prop || name), JSON.stringify(msg), value || name)
+          } else {
+            validate('validate.errors.push({field:%s,message:%s, innerErrors: validate.innerErrors})', formatName(prop || name), JSON.stringify(msg))
+          }
+          validate('validate.innerErrors = null')
         } else {
-          validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          if (verbose) {
+            validate('validate.errors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+          } else {
+            validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          }
         }
       }
     }
@@ -168,10 +184,10 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     var valid = [].concat(type)
-      .map(function(t) {
-        return types[t || 'any'](name)
-      })
-      .join(' || ') || 'true'
+            .map(function(t) {
+              return types[t || 'any'](name)
+            })
+            .join(' || ') || 'true'
 
     if (valid !== 'true') {
       indent++
@@ -190,7 +206,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
         visit(name+'['+i+']', node.additionalItems, reporter, filter)
         validate('}')
-      }   
+      }
     }
 
     if (node.format && fmts[node.format]) {
@@ -241,12 +257,12 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
 
       var compare = complex ?
-        function(e) {
-          return 'JSON.stringify('+name+')'+' !== JSON.stringify('+JSON.stringify(e)+')'
-        } :
-        function(e) {
-          return name+' !== '+JSON.stringify(e)
-        }
+          function(e) {
+            return 'JSON.stringify('+name+')'+' !== JSON.stringify('+JSON.stringify(e)+')'
+          } :
+          function(e) {
+            return name+' !== '+JSON.stringify(e)
+          }
 
       validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false')
       error('must be an enum value')
@@ -294,12 +310,12 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
 
       var additionalProp = Object.keys(properties || {}).map(toCompare)
-        .concat(Object.keys(node.patternProperties || {}).map(toTest))
-        .join(' && ') || 'true'
+              .concat(Object.keys(node.patternProperties || {}).map(toTest))
+              .join(' && ') || 'true'
 
       validate('var %s = Object.keys(%s)', keys, name)
-        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
-          ('if (%s) {', additionalProp)
+      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+      ('if (%s) {', additionalProp)
 
       if (node.additionalProperties === false) {
         if (filter) validate('delete %s', name+'['+keys+'['+i+']]')
@@ -309,8 +325,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
 
       validate
-          ('}')
-        ('}')
+      ('}')
+      ('}')
 
       if (type !== 'object') validate('}')
     }
@@ -340,7 +356,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('if (%s === errors) {', prev)
       error('negative schema matches')
       validate('} else {')
-        ('errors = %s', prev)
+      ('errors = %s', prev)
       ('}')
     }
 
@@ -360,8 +376,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       var keys = gensym('keys')
       var i = genloop()
       validate
-        ('var %s = Object.keys(%s)', keys, name)
-        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+      ('var %s = Object.keys(%s)', keys, name)
+      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
 
       Object.keys(node.patternProperties).forEach(function(key) {
         var p = patterns(key)
@@ -395,17 +411,17 @@ var compile = function(schema, cache, root, reporter, opts) {
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
           validate('var %s = errors', prev)
-        } else {          
+        } else {
           validate('if (errors !== %s) {', prev)
-            ('errors = %s', prev)
+          ('errors = %s', prev)
         }
-        visit(name, sch, false, false)
+        visit(name, sch, true, false, true)
       })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
       })
       validate('if (%s !== errors) {', prev)
-      error('no schemas match')
+      error('no schemas match', null, null, true)
       validate('}')
     }
 
@@ -414,20 +430,20 @@ var compile = function(schema, cache, root, reporter, opts) {
       var passes = gensym('passes')
 
       validate
-        ('var %s = errors', prev)
-        ('var %s = 0', passes)
+      ('var %s = errors', prev)
+      ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, false, false)
+        visit(name, sch, true, false, true)
         validate('if (%s === errors) {', prev)
-          ('%s++', passes)
+        ('%s++', passes)
         ('} else {')
-          ('errors = %s', prev)
+        ('errors = %s', prev)
         ('}')
       })
 
       validate('if (%s !== 1) {', passes)
-      error('no (or more than one) schemas match')
+      error('no (or more than one) schemas match',null,null,true)
       validate('}')
     }
 
@@ -446,7 +462,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length > %d) {', name, node.maxProperties)
       error('has more properties than allowed')
       validate('}')
@@ -456,7 +472,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length < %d) {', name, node.minProperties)
       error('has less properties than allowed')
       validate('}')
@@ -466,7 +482,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length > %d) {', name, node.maxItems)
       error('has more items than allowed')
       validate('}')
@@ -476,7 +492,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length < %d) {', name, node.minItems)
       error('has less items than allowed')
       validate('}')
@@ -530,15 +546,16 @@ var compile = function(schema, cache, root, reporter, opts) {
   }
 
   var validate = genfun
-    ('function validate(data) {')
-      ('validate.errors = null')
-      ('var errors = 0')
+  ('function validate(data) {')
+  ('validate.errors = null')
+  ('validate.innerErrors = null')
+  ('var errors = 0')
 
   visit('data', schema, reporter, opts && opts.filter)
 
   validate
-      ('return errors === 0')
-    ('}')
+  ('return errors === 0')
+  ('}')
 
   validate = validate.toFunction(scope)
   validate.errors = null
@@ -546,10 +563,10 @@ var compile = function(schema, cache, root, reporter, opts) {
   validate.__defineGetter__('error', function() {
     if (!validate.errors) return ''
     return validate.errors
-      .map(function(err) {
-        return err.field+' '+err.message
-      })
-      .join('\n')
+        .map(function(err) {
+          return err.field+' '+err.message
+        })
+        .join('\n')
   })
 
   validate.toJSON = function() {
