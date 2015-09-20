@@ -108,6 +108,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
       opts.greedy : false;
+  var showInnerErrors = opts ? !!opts.showInnerErrors : false;
 
   var syms = {}
   var gensym = function(name) {
@@ -415,13 +416,13 @@ var compile = function(schema, cache, root, reporter, opts) {
           validate('if (errors !== %s) {', prev)
           ('errors = %s', prev)
         }
-        visit(name, sch, true, false, true)
+        visit(name, sch, showInnerErrors, false, showInnerErrors)
       })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
       })
       validate('if (%s !== errors) {', prev)
-      error('no schemas match', null, null, true)
+      error('no schemas match', null, null, showInnerErrors)
       validate('}')
     }
 
@@ -434,7 +435,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, true, false, true)
+        visit(name, sch, showInnerErrors, false, showInnerErrors)
         validate('if (%s === errors) {', prev)
         ('%s++', passes)
         ('} else {')
@@ -443,7 +444,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
 
       validate('if (%s !== 1) {', passes)
-      error('no (or more than one) schemas match',null,null,true)
+      error('no (or more than one) schemas match',null,null,showInnerErrors)
       validate('}')
     }
 
