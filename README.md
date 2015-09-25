@@ -154,6 +154,55 @@ console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
                              //  {field: 'data.x', message: 'is the wrong type'}]
 ```
 
+## Inner Errors mode shows some detailed error information in case of oneOf and anyOf
+
+By default is-my-json-valid shows default message in case of oneOf and anyOf. 
+set to true it shows some detailed error information:
+
+``` js
+var validate = validator({
+    "type": "object",
+    "properties": {
+        "x": {
+            "oneOf": [
+                {
+                    "type": "integer"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+
+        }
+    }, {
+  "showInnerErrors": true
+});
+
+validate({"x":0.1});
+console.log(validate.errors) 
+
+/*
+{
+  "RequestStatus": "Error",
+  "ErrorMessage": [
+    {
+      "field": "data.x",
+      "message": "no (or more than one) schemas match",
+      "innerErrors": [
+        {
+          "field": "data.x",
+          "message": "is the wrong type"
+        },
+        {
+          "field": "data.x",
+          "message": "is the wrong type"
+        }
+      ]
+    }
+  ]
+}
+ */
+```
 ## Performance
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.
