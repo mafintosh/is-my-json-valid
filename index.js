@@ -566,7 +566,9 @@ var compile = function(schema, cache, root, reporter, opts) {
     ('}, [])')
     ('return errorsArray.map(function(current) {')
     ('return JSON.parse(current);})}')
+    ('if(validate.errors !== null) {')
     ('validate.errors = uniqueItems(validate.errors)')
+    ('}')
     ('return errors === 0')
     ('}')
 
