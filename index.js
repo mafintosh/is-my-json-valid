@@ -147,7 +147,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     var indent = 0
     var error = function(msg, prop, value) {
       validate('errors++')
-      if (reporter === true) {
+      if (reporter === true && msg) {
         validate('if (validate.errors === null) validate.errors = []')
         if (verbose) {
           validate('validate.errors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
@@ -334,52 +334,52 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.not) {
-      var prev = gensym('prev')
-      validate('var %s = errors', prev)
-      visit(name, node.not, false, filter)
-      validate('if (%s === errors) {', prev)
-      error('negative schema matches')
+      var prev = gensym('prev');
+      validate('var %s = errors', prev);
+      visit(name, node.not, reporter, filter);
+      validate('if (%s === errors) {', prev);
+      error();
       validate('} else {')
         ('errors = %s', prev)
       ('}')
     }
 
     if (node.items && !tuple) {
-      if (type !== 'array') validate('if (%s) {', types.array(name))
+      if (type !== 'array') validate('if (%s) {', types.array(name));
 
-      var i = genloop()
-      validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
-      visit(name+'['+i+']', node.items, reporter, filter)
-      validate('}')
+      var i = genloop();
+      validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i);
+      visit(name+'['+i+']', node.items, reporter, filter);
+      validate('}');
 
       if (type !== 'array') validate('}')
     }
 
     if (node.patternProperties) {
-      if (type !== 'object') validate('if (%s) {', types.object(name))
-      var keys = gensym('keys')
-      var i = genloop()
+      if (type !== 'object') validate('if (%s) {', types.object(name));
+      var keys = gensym('keys');
+      var i = genloop();
       validate
         ('var %s = Object.keys(%s)', keys, name)
-        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i);
 
       Object.keys(node.patternProperties).forEach(function(key) {
-        var p = patterns(key)
-        validate('if (%s.test(%s)) {', p, keys+'['+i+']')
-        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter)
+        var p = patterns(key);
+        validate('if (%s.test(%s)) {', p, keys+'['+i+']');
+        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter);
         validate('}')
-      })
+      });
 
-      validate('}')
+      validate('}');
       if (type !== 'object') validate('}')
     }
 
     if (node.pattern) {
-      var p = patterns(node.pattern)
-      if (type !== 'string') validate('if (%s) {', types.string(name))
-      validate('if (!(%s.test(%s))) {', p, name)
-      error('pattern mismatch')
-      validate('}')
+      var p = patterns(node.pattern);
+      if (type !== 'string') validate('if (%s) {', types.string(name));
+      validate('if (!(%s.test(%s))) {', p, name);
+      error('pattern mismatch');
+      validate('}');
       if (type !== 'string') validate('}')
     }
 
@@ -390,7 +390,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.anyOf && node.anyOf.length) {
-      var prev = gensym('prev')
+      var prev = gensym('prev');
 
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
@@ -399,35 +399,35 @@ var compile = function(schema, cache, root, reporter, opts) {
           validate('if (errors !== %s) {', prev)
             ('errors = %s', prev)
         }
-        visit(name, sch, false, false)
-      })
+        visit(name, sch, reporter, false)
+      });
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
-      })
-      validate('if (%s !== errors) {', prev)
-      error('no schemas match')
+      });
+      validate('if (%s !== errors) {', prev);
+      error();
       validate('}')
     }
 
     if (node.oneOf && node.oneOf.length) {
-      var prev = gensym('prev')
-      var passes = gensym('passes')
+      var prev = gensym('prev');
+      var passes = gensym('passes');
 
       validate
         ('var %s = errors', prev)
-        ('var %s = 0', passes)
+        ('var %s = 0', passes);
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, false, false)
+        visit(name, sch, reporter, false);
         validate('if (%s === errors) {', prev)
           ('%s++', passes)
         ('} else {')
           ('errors = %s', prev)
         ('}')
-      })
+      });
 
-      validate('if (%s !== 1) {', passes)
-      error('no (or more than one) schemas match')
+      validate('if (%s !== 1) {', passes);
+      error();
       validate('}')
     }
 
@@ -527,37 +527,49 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     while (indent--) validate('}')
-  }
+  };
 
   var validate = genfun
     ('function validate(data) {')
       ('validate.errors = null')
-      ('var errors = 0')
+      ('var errors = 0');
 
   visit('data', schema, reporter, opts && opts.filter)
 
   validate
-      ('return errors === 0')
-    ('}')
+  ('var uniqueItems = function (array){')
+  ('var errorsArray = array.reduce(function(accum, current) {')
+  ('if (accum.indexOf(JSON.stringify(current)) < 0) {')
+  ('accum.push(JSON.stringify(current));')
+  ('}')
+  ('return accum;')
+  ('}, [])')
+  ('return errorsArray.map(function(current) {')
+  ('return JSON.parse(current);})}')
+  ('if(validate.errors !== null) {')
+  ('validate.errors = uniqueItems(validate.errors)')
+  ('}')
+  ('return errors === 0')
+  ('}');
 
-  validate = validate.toFunction(scope)
-  validate.errors = null
+  validate = validate.toFunction(scope);
+  validate.errors = null;
 
   validate.__defineGetter__('error', function() {
-    if (!validate.errors) return ''
+    if (!validate.errors) return '';
     return validate.errors
       .map(function(err) {
         return err.field+' '+err.message
       })
       .join('\n')
-  })
+  });
 
   validate.toJSON = function() {
     return schema
-  }
+  };
 
   return validate
-}
+};
 
 module.exports = function(schema, opts) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
