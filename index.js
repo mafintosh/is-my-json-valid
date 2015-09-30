@@ -130,7 +130,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
-  var visit = function(name, node, reporter, filter, isComplex, isNodeNot) {
+  var visit = function(name, node, reporter, filter, isComplex) {
     var properties = node.properties
     var type = node.type
     var tuple = false
@@ -166,17 +166,12 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
     }
 
-    if (node.required === true && !isNodeNot) {
+    if (node.required === true) {
       indent++
       validate('if (%s === undefined) {', name)
       error('is required')
       validate('} else {')
-    } else if (node.required === true && isNodeNot) {
-      validate('if (%s !== undefined) {', name)
-      error('is not required')
-      validate('} else {')
-    }
-    else {
+    } else {
       indent++
       validate('if (%s !== undefined) {', name)
     }
@@ -350,12 +345,10 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.not) {
       var prev = gensym('prev');
       validate('var %s = errors', prev);
-      visit(name, node.not, reporter, filter, true, true);
+      visit(name, node.not, false, filter);
       validate('if (%s === errors) {', prev);
-      error();
-      validate('if(validate.innerErrors && validate.innerErrors.length){')
-      validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
-      validate('validate.innerErrors = []} else {')
+      error("has some not allowed properties");
+      validate('} else {')
       ('errors = %s', prev)
       ('}')
     }
@@ -415,20 +408,16 @@ var compile = function(schema, cache, root, reporter, opts) {
           validate('if (errors !== %s) {', prev)
           ('errors = %s', prev)
         }
-        visit(name, sch, reporter, false, true, isNodeNot)
+        visit(name, sch, reporter, false, true)
       });
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
       });
       validate('if (%s !== errors) {', prev);
       error();
-      if(isNodeNot){
-        validate('}');
-      } else {
-        validate('if(validate.innerErrors && validate.innerErrors.length){')
-        validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
-        validate('} else { validate.innerErrors = []}')
-      }
+      validate('if(validate.innerErrors && validate.innerErrors.length){')
+      validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
+      validate('} else { validate.innerErrors = []}')
     }
 
     if (node.oneOf && node.oneOf.length) {
