@@ -258,7 +258,7 @@ var compile = function(schema, cache, root, reporter, opts) {
           }
 
       validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false')
-      error('must be an enum value')
+      error('must be an allowed value')
       validate('}')
     }
 
@@ -347,7 +347,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('var %s = errors', prev);
       visit(name, node.not, false, filter);
       validate('if (%s === errors) {', prev);
-      error("has some not allowed properties");
+      error("has some not allowed properties or types");
       validate('} else {')
       ('errors = %s', prev)
       ('}')
