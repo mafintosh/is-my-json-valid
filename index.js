@@ -13,7 +13,7 @@ var get = function(obj, additionalSchemas, ptr) {
     return Object.keys(sub).reduce(function(res, k) {
       return res || visit(sub[k])
     }, null)
-  };
+  }
 
   var res = visit(obj)
   if (res) return res
@@ -25,7 +25,7 @@ var get = function(obj, additionalSchemas, ptr) {
     return jsonpointer.get(obj, decodeURI(ptr))
   } catch (err) {
     var end = ptr.indexOf('#')
-    var other;
+    var other
     // external reference
     if (end !== 0) {
       // fragment doesn't exist.
@@ -44,14 +44,14 @@ var get = function(obj, additionalSchemas, ptr) {
     }
     return other || null
   }
-};
+}
 
 var formatName = function(field) {
   field = JSON.stringify(field)
   var pattern = /\[([^\[\]"]+)\]/
   while (pattern.test(field)) field = field.replace(pattern, '."+$1+"')
   return field
-};
+}
 
 var types = {}
 
@@ -88,7 +88,7 @@ types.string = function(name) {
 }
 
 var unique = function(array) {
-  var list = [];
+  var list = []
   for (var i = 0; i < array.length; i++) {
     list.push(typeof array[i] === 'object' ? JSON.stringify(array[i]) : array[i])
   }
@@ -103,8 +103,8 @@ var toType = function(node) {
 }
 
 var compile = function(schema, cache, root, reporter, opts) {
-  var fmts = opts ? xtend(formats, opts.formats) : formats;
-  var scope = {unique:unique, formats:fmts};
+  var fmts = opts ? xtend(formats, opts.formats) : formats
+  var scope = {unique:unique, formats:fmts}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
       opts.greedy : false;
@@ -195,7 +195,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         error('has additional items')
         validate('}')
       } else if (node.additionalItems) {
-        var i = genloop();
+        var i = genloop()
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
         visit(name+'['+i+']', node.additionalItems, reporter, filter, isComplex)
         validate('}')
@@ -226,7 +226,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         validate('missing++')
         validate('}')
       }
-      validate('if ((%s)) {', type !== 'object' ? types.object(name) : 'true');
+      validate('if ((%s)) {', type !== 'object' ? types.object(name) : 'true')
       validate('var missing = 0')
       node.required.map(checkRequired)
       validate('}');
@@ -237,7 +237,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.uniqueItems) {
-      if (type !== 'array') validate('if (%s) {', types.array(name));
+      if (type !== 'array') validate('if (%s) {', types.array(name))
       validate('if (!(unique(%s))) {', name)
       error('must be unique')
       validate('}')
@@ -257,13 +257,13 @@ var compile = function(schema, cache, root, reporter, opts) {
             return name+' !== '+JSON.stringify(e)
           }
 
-      validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false');
+      validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false')
       error('must be an allowed value')
       validate('}')
     }
 
     if (node.dependencies) {
-      if (type !== 'object') validate('if (%s) {', types.object(name));
+      if (type !== 'object') validate('if (%s) {', types.object(name))
 
       Object.keys(node.dependencies).forEach(function(key) {
         var deps = node.dependencies[key]
@@ -343,11 +343,11 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.not) {
-      var prev = gensym('prev');
-      validate('var %s = errors', prev);
-      visit(name, node.not, false, filter, isComplex);
-      validate('if (%s === errors) {', prev);
-      error("has some not allowed properties or types");
+      var prev = gensym('prev')
+      validate('var %s = errors', prev)
+      visit(name, node.not, false, filter, isComplex)
+      validate('if (%s === errors) {', prev)
+      error("has some not allowed properties or types")
       validate('} else {')
       ('errors = %s', prev)
       ('}')
@@ -356,39 +356,39 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.items && !tuple) {
       if (type !== 'array') validate('if (%s) {', types.array(name));
 
-      var i = genloop();
-      validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i);
-      visit(name+'['+i+']', node.items, reporter, filter, isComplex);
-      validate('}');
+      var i = genloop()
+      validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
+      visit(name+'['+i+']', node.items, reporter, filter, isComplex)
+      validate('}')
 
       if (type !== 'array') validate('}')
     }
 
     if (node.patternProperties) {
-      if (type !== 'object') validate('if (%s) {', types.object(name));
-      var keys = gensym('keys');
-      var i = genloop();
+      if (type !== 'object') validate('if (%s) {', types.object(name))
+      var keys = gensym('keys')
+      var i = genloop()
       validate
       ('var %s = Object.keys(%s)', keys, name)
-      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i);
+      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
 
       Object.keys(node.patternProperties).forEach(function(key) {
-        var p = patterns(key);
-        validate('if (%s.test(%s)) {', p, keys+'['+i+']');
-        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter, isComplex);
+        var p = patterns(key)
+        validate('if (%s.test(%s)) {', p, keys+'['+i+']')
+        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter, isComplex)
         validate('}')
       });
 
-      validate('}');
+      validate('}')
       if (type !== 'object') validate('}')
     }
 
     if (node.pattern) {
       var p = patterns(node.pattern);
-      if (type !== 'string') validate('if (%s) {', types.string(name));
-      validate('if (!(%s.test(%s))) {', p, name);
-      error('pattern mismatch');
-      validate('}');
+      if (type !== 'string') validate('if (%s) {', types.string(name))
+      validate('if (!(%s.test(%s))) {', p, name)
+      error('pattern mismatch')
+      validate('}')
       if (type !== 'string') validate('}')
     }
 
@@ -399,7 +399,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.anyOf && node.anyOf.length) {
-      var prev = gensym('prev');
+      var prev = gensym('prev')
 
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
@@ -409,36 +409,36 @@ var compile = function(schema, cache, root, reporter, opts) {
           ('errors = %s', prev)
         }
         visit(name, sch, reporter, false, true)
-      });
+      })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
-      });
-      validate('if (%s !== errors) {', prev);
-      error();
+      })
+      validate('if (%s !== errors) {', prev)
+      error()
       validate('if(validate.innerErrors && validate.innerErrors.length){')
       validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
       validate('} else { validate.innerErrors = []}')
     }
 
     if (node.oneOf && node.oneOf.length) {
-      var prev = gensym('prev');
-      var passes = gensym('passes');
+      var prev = gensym('prev')
+      var passes = gensym('passes')
 
       validate
       ('var %s = errors', prev)
-      ('var %s = 0', passes);
+      ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, reporter, false, true);
+        visit(name, sch, reporter, false, true)
         validate('if (%s === errors) {', prev)
         ('%s++', passes)
         ('} else {')
         ('errors = %s', prev)
         ('}')
-      });
+      })
 
-      validate('if (%s !== 1) {', passes);
-      error();
+      validate('if (%s !== 1) {', passes)
+      error()
       validate('if(validate.innerErrors && validate.innerErrors.length){')
       validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
       validate('} else { validate.innerErrors = []}')
@@ -464,7 +464,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       error('has more properties than allowed')
       validate('}')
 
-      if (type !== 'object') validate('}');
+      if (type !== 'object') validate('}')
     }
 
     if (node.minProperties !== undefined) {
@@ -539,8 +539,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
     }
 
-    while (indent--) validate('}');
-  };
+    while (indent--) validate('}')
+  }
 
   var validate = genfun
   ('function validate(data) {')
@@ -576,17 +576,17 @@ var compile = function(schema, cache, root, reporter, opts) {
           return err.field+' '+err.message
         })
         .join('\n')
-  });
+  })
 
   validate.toJSON = function() {
     return schema
-  };
+  }
 
   return validate
-};
+}
 
 module.exports = function(schema, opts) {
-  if (typeof schema === 'string') schema = JSON.parse(schema);
+  if (typeof schema === 'string') schema = JSON.parse(schema)
   return compile(schema, {}, schema, true, opts)
 }
 
