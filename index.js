@@ -107,7 +107,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   var scope = {unique:unique, formats:fmts}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
-    opts.greedy : false;
+      opts.greedy : false;
 
   var syms = {}
   var gensym = function(name) {
@@ -130,7 +130,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
-  var visit = function(name, node, reporter, filter) {
+  var visit = function(name, node, reporter, filter, isComplex) {
     var properties = node.properties
     var type = node.type
     var tuple = false
@@ -147,12 +147,21 @@ var compile = function(schema, cache, root, reporter, opts) {
     var indent = 0
     var error = function(msg, prop, value) {
       validate('errors++')
-      if (reporter === true) {
+      if (reporter === true && msg) {
         validate('if (validate.errors === null) validate.errors = []')
-        if (verbose) {
-          validate('validate.errors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+        validate('if (validate.innerErrors === null) validate.innerErrors = []')
+        if(isComplex){
+          if (verbose) {
+            validate('validate.innerErrors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+          } else {
+            validate('validate.innerErrors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          }
         } else {
-          validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          if (verbose) {
+            validate('validate.errors.push({field:%s,message:%s,value:%s})', formatName(prop || name), JSON.stringify(msg), value || name)
+          } else {
+            validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
+          }
         }
       }
     }
@@ -168,10 +177,10 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     var valid = [].concat(type)
-      .map(function(t) {
-        return types[t || 'any'](name)
-      })
-      .join(' || ') || 'true'
+            .map(function(t) {
+              return types[t || 'any'](name)
+            })
+            .join(' || ') || 'true'
 
     if (valid !== 'true') {
       indent++
@@ -188,9 +197,9 @@ var compile = function(schema, cache, root, reporter, opts) {
       } else if (node.additionalItems) {
         var i = genloop()
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
-        visit(name+'['+i+']', node.additionalItems, reporter, filter)
+        visit(name+'['+i+']', node.additionalItems, reporter, filter, isComplex)
         validate('}')
-      }   
+      }
     }
 
     if (node.format && fmts[node.format]) {
@@ -241,15 +250,15 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
 
       var compare = complex ?
-        function(e) {
-          return 'JSON.stringify('+name+')'+' !== JSON.stringify('+JSON.stringify(e)+')'
-        } :
-        function(e) {
-          return name+' !== '+JSON.stringify(e)
-        }
+          function(e) {
+            return 'JSON.stringify('+name+')'+' !== JSON.stringify('+JSON.stringify(e)+')'
+          } :
+          function(e) {
+            return name+' !== '+JSON.stringify(e)
+          }
 
       validate('if (%s) {', node.enum.map(compare).join(' && ') || 'false')
-      error('must be an enum value')
+      error('must be an allowed value')
       validate('}')
     }
 
@@ -271,7 +280,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         }
         if (typeof deps === 'object') {
           validate('if (%s !== undefined) {', genobj(name, key))
-          visit(name, deps, reporter, filter)
+          visit(name, deps, reporter, filter, isComplex)
           validate('}')
         }
       })
@@ -294,23 +303,23 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
 
       var additionalProp = Object.keys(properties || {}).map(toCompare)
-        .concat(Object.keys(node.patternProperties || {}).map(toTest))
-        .join(' && ') || 'true'
+              .concat(Object.keys(node.patternProperties || {}).map(toTest))
+              .join(' && ') || 'true'
 
       validate('var %s = Object.keys(%s)', keys, name)
-        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
-          ('if (%s) {', additionalProp)
+      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+      ('if (%s) {', additionalProp)
 
       if (node.additionalProperties === false) {
         if (filter) validate('delete %s', name+'['+keys+'['+i+']]')
         error('has additional properties', null, JSON.stringify(name+'.') + ' + ' + keys + '['+i+']')
       } else {
-        visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter)
+        visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter, isComplex)
       }
 
       validate
-          ('}')
-        ('}')
+      ('}')
+      ('}')
 
       if (type !== 'object') validate('}')
     }
@@ -322,7 +331,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         if (!fn) {
           cache[node.$ref] = function proxy(data) {
             return fn(data)
-          }
+          };
           fn = compile(sub, cache, root, false, opts)
         }
         var n = gensym('ref')
@@ -336,20 +345,20 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.not) {
       var prev = gensym('prev')
       validate('var %s = errors', prev)
-      visit(name, node.not, false, filter)
+      visit(name, node.not, false, filter, isComplex)
       validate('if (%s === errors) {', prev)
-      error('negative schema matches')
+      error("has some not allowed properties or types")
       validate('} else {')
-        ('errors = %s', prev)
+      ('errors = %s', prev)
       ('}')
     }
 
     if (node.items && !tuple) {
-      if (type !== 'array') validate('if (%s) {', types.array(name))
+      if (type !== 'array') validate('if (%s) {', types.array(name));
 
       var i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
-      visit(name+'['+i+']', node.items, reporter, filter)
+      visit(name+'['+i+']', node.items, reporter, filter, isComplex)
       validate('}')
 
       if (type !== 'array') validate('}')
@@ -360,22 +369,22 @@ var compile = function(schema, cache, root, reporter, opts) {
       var keys = gensym('keys')
       var i = genloop()
       validate
-        ('var %s = Object.keys(%s)', keys, name)
-        ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
+      ('var %s = Object.keys(%s)', keys, name)
+      ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
 
       Object.keys(node.patternProperties).forEach(function(key) {
         var p = patterns(key)
         validate('if (%s.test(%s)) {', p, keys+'['+i+']')
-        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter)
+        visit(name+'['+keys+'['+i+']]', node.patternProperties[key], reporter, filter, isComplex)
         validate('}')
-      })
+      });
 
       validate('}')
       if (type !== 'object') validate('}')
     }
 
     if (node.pattern) {
-      var p = patterns(node.pattern)
+      var p = patterns(node.pattern);
       if (type !== 'string') validate('if (%s) {', types.string(name))
       validate('if (!(%s.test(%s))) {', p, name)
       error('pattern mismatch')
@@ -385,7 +394,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.allOf) {
       node.allOf.forEach(function(sch) {
-        visit(name, sch, reporter, filter)
+        visit(name, sch, reporter, filter, isComplex)
       })
     }
 
@@ -395,18 +404,20 @@ var compile = function(schema, cache, root, reporter, opts) {
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
           validate('var %s = errors', prev)
-        } else {          
+        } else {
           validate('if (errors !== %s) {', prev)
-            ('errors = %s', prev)
+          ('errors = %s', prev)
         }
-        visit(name, sch, false, false)
+        visit(name, sch, reporter, false, true)
       })
       node.anyOf.forEach(function(sch, i) {
         if (i) validate('}')
       })
       validate('if (%s !== errors) {', prev)
-      error('no schemas match')
-      validate('}')
+      error()
+      validate('if(validate.innerErrors && validate.innerErrors.length){')
+      validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
+      validate('} else { validate.innerErrors = []}')
     }
 
     if (node.oneOf && node.oneOf.length) {
@@ -414,21 +425,23 @@ var compile = function(schema, cache, root, reporter, opts) {
       var passes = gensym('passes')
 
       validate
-        ('var %s = errors', prev)
-        ('var %s = 0', passes)
+      ('var %s = errors', prev)
+      ('var %s = 0', passes)
 
       node.oneOf.forEach(function(sch, i) {
-        visit(name, sch, false, false)
+        visit(name, sch, reporter, false, true)
         validate('if (%s === errors) {', prev)
-          ('%s++', passes)
+        ('%s++', passes)
         ('} else {')
-          ('errors = %s', prev)
+        ('errors = %s', prev)
         ('}')
       })
 
       validate('if (%s !== 1) {', passes)
-      error('no (or more than one) schemas match')
-      validate('}')
+      error()
+      validate('if(validate.innerErrors && validate.innerErrors.length){')
+      validate('validate.errors = validate.errors.concat(validate.innerErrors)}')
+      validate('} else { validate.innerErrors = []}')
     }
 
     if (node.multipleOf !== undefined) {
@@ -446,7 +459,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length > %d) {', name, node.maxProperties)
       error('has more properties than allowed')
       validate('}')
@@ -456,7 +469,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minProperties !== undefined) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      
+
       validate('if (Object.keys(%s).length < %d) {', name, node.minProperties)
       error('has less properties than allowed')
       validate('}')
@@ -466,7 +479,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.maxItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length > %d) {', name, node.maxItems)
       error('has more items than allowed')
       validate('}')
@@ -476,7 +489,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.minItems !== undefined) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      
+
       validate('if (%s.length < %d) {', name, node.minItems)
       error('has less items than allowed')
       validate('}')
@@ -520,7 +533,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       Object.keys(properties).forEach(function(p) {
         if (Array.isArray(type) && type.indexOf('null') !== -1) validate('if (%s !== null) {', name)
 
-        visit(genobj(name, p), properties[p], reporter, filter)
+        visit(genobj(name, p), properties[p], reporter, filter, isComplex)
 
         if (Array.isArray(type) && type.indexOf('null') !== -1) validate('}')
       })
@@ -530,26 +543,39 @@ var compile = function(schema, cache, root, reporter, opts) {
   }
 
   var validate = genfun
-    ('function validate(data) {')
-      ('validate.errors = null')
-      ('var errors = 0')
+  ('function validate(data) {')
+  ('validate.errors = null')
+  ('validate.innerErrors = null')
+  ('var errors = 0');
 
   visit('data', schema, reporter, opts && opts.filter)
 
   validate
-      ('return errors === 0')
-    ('}')
+  ('var uniqueItems = function (array){')
+  ('var errorsArray = array.reduce(function(accum, current) {')
+  ('if (accum.indexOf(JSON.stringify(current)) < 0) {')
+  ('accum.push(JSON.stringify(current));')
+  ('}')
+  ('return accum;')
+  ('}, [])')
+  ('return errorsArray.map(function(current) {')
+  ('return JSON.parse(current);})}')
+  ('if(validate.errors !== null) {')
+  ('validate.errors = uniqueItems(validate.errors)')
+  ('}')
+  ('return errors === 0')
+  ('}');
 
-  validate = validate.toFunction(scope)
-  validate.errors = null
+  validate = validate.toFunction(scope);
+  validate.errors = null;
 
   validate.__defineGetter__('error', function() {
-    if (!validate.errors) return ''
+    if (!validate.errors) return '';
     return validate.errors
-      .map(function(err) {
-        return err.field+' '+err.message
-      })
-      .join('\n')
+        .map(function(err) {
+          return err.field+' '+err.message
+        })
+        .join('\n')
   })
 
   validate.toJSON = function() {
