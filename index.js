@@ -543,13 +543,15 @@ var compile = function(schema, cache, root, reporter, opts) {
   validate = validate.toFunction(scope)
   validate.errors = null
 
-  validate.__defineGetter__('error', function() {
-    if (!validate.errors) return ''
-    return validate.errors
-      .map(function(err) {
-        return err.field+' '+err.message
-      })
-      .join('\n')
+  Object.defineProperty(validate, 'error', {
+    get: function() {
+      if (!validate.errors) return ''
+      return validate.errors
+        .map(function(err) {
+          return err.field+' '+err.message
+        })
+        .join('\n')
+    }
   })
 
   validate.toJSON = function() {
