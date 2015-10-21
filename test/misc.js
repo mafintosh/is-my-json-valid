@@ -278,6 +278,22 @@ tape('external schemas', function(t) {
   t.end()
 })
 
+tape('external schema URIs', function(t) {
+  var ext = {type: 'string'}
+  var schema = {
+    required: true,
+    $ref: 'http://example.com/schemas/schemaURIs'
+  }
+
+  var opts = {schemas:{}};
+  opts.schemas['http://example.com/schemas/schemaURIs'] = ext;
+  var validate = validator(schema, opts)
+
+  t.ok(validate('hello string'), 'is a string')
+  t.notOk(validate(42), 'not a string')
+  t.end()
+})
+
 tape('top-level external schema', function(t) {
   var defs = {
     "string": {
