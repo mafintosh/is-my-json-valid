@@ -154,6 +154,76 @@ console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
                              //  {field: 'data.x', message: 'is the wrong type'}]
 ```
 
+## Custom data types and coercers
+
+is-my-json-valid supports custom data types and coercers through the `validator.types` property. This can be useful for working with objects that must have values of types not represented in standard JSON.
+
+For example, MongoDB queries using the `_id` field require the query document field value to be an instance of MongoDB's `ObjectId` class. Generally these are represented in JSON as a 24-character hex string, but must be converted to an `ObjectId` before being used in a query.
+
+Supporting the `ObjectId` type in validation and coercing those fields into `ObjectId` instances takes two steps:
+``` js
+// Step 1: Make Mongo's ObjectId class global. Note that the Node JS driver for MongoDB calls the
+// class ObjectID (with a capital D), but here we set it in GLOBAL using MongoDB's spelling, ObjectId.
+GLOBAL.ObjectId = require('mongodb').ObjectID;
+
+// Step 2: Add a custom type validator called ObjectId that also coerces.
+// It returns a string that makes up a condition of an if clause.
+// All work must be performed in one statement.
+// The logic is as follows:
+//    Is the value a string of 24 hex characters?
+//       YES: Change the field to an ObjectId and return it (truthy).
+//       NO: Is the value a non-null object whos constructor is ObjectId?
+//          YES: Return true.
+//          NO: Return false.
+validator.types.ObjectId = function(name) {
+   return 'typeof '+name+' === "string" && /^[0-9a-f]{24}$/i.test('+name+') ? '+name+'=ObjectId('+name+') : '+name+' && '+name+'.constructor===ObjectId';
+};
+```
+The type **`"ObjectId"`** is now avaialable for use in schemas. For example:
+``` js
+// Create a schema, using the new ObjectId type for the _id property.
+var querySchema={
+   required : true,
+   type : "object",
+   properties : {
+      _id : {
+         required : true,
+         type : "ObjectId"
+      }
+   },
+   additionalProperties : false
+};
+
+// Create a validator for the schema.
+var validateQuery=validator(querySchema);
+
+// Create a query document with _id as a string.
+var queryDoc={ _id : "56b98ca35c55e4a8061a92d8" };
+console.log("[START] typeof _id:"+typeof(queryDoc._id)+" value:"+queryDoc._id);
+
+// Now call the validator with query document.
+var isValid=validateQuery(queryDoc);
+console.log("[FIRST] isValid:"+isValid+" typeof _id:"+typeof(queryDoc._id)+" value:"+queryDoc._id);
+// isValid is true, and queryDoc._id is now of type ObjectId.
+
+// Test the validation against the query document in its new form as well.
+var isAlsoValid=validateQuery(queryDoc);
+console.log("[SECOND] isAlsoValid:"+isAlsoValid+" typeof _id:"+typeof(queryDoc._id)+" value:"+queryDoc._id);
+// isAlsoValid is also true.
+
+// Try a bad _id string.
+queryDoc._id="56b9"; // Too short!
+var isValidNow=validateQuery(queryDoc);
+console.log("[THIRD] isValidNow:"+isValidNow+" typeof _id:"+typeof(queryDoc._id)+" value:"+queryDoc._id);
+// isValidNow is false, and queryDoc._id is still the unchanged string.
+```
+The console will show:
+```
+[START] typeof _id:string value:56b98ca35c55e4a8061a92d8
+[FIRST] isValid:true typeof _id:object value:56b98ca35c55e4a8061a92d8
+[SECOND] isAlsoValid:true typeof _id:object value:56b98ca35c55e4a8061a92d8
+[THIRD] isValidNow:false typeof _id:string value:56b9
+```
 ## Performance
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.
