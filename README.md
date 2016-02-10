@@ -212,7 +212,7 @@ console.log("[SECOND] isAlsoValid:"+isAlsoValid+" typeof _id:"+typeof(queryDoc._
 // isAlsoValid is also true.
 
 // Try a bad _id string.
-queryDoc._id="56b9"; // Too short!
+queryDoc._id="56b95"; // Too short!
 var isValidNow=validateQuery(queryDoc);
 console.log("[THIRD] isValidNow:"+isValidNow+" typeof _id:"+typeof(queryDoc._id)+" value:"+queryDoc._id);
 // isValidNow is false, and queryDoc._id is still the unchanged string.
@@ -222,7 +222,7 @@ The console will show:
 [START] typeof _id:string value:56b98ca35c55e4a8061a92d8
 [FIRST] isValid:true typeof _id:object value:56b98ca35c55e4a8061a92d8
 [SECOND] isAlsoValid:true typeof _id:object value:56b98ca35c55e4a8061a92d8
-[THIRD] isValidNow:false typeof _id:string value:56b9
+[THIRD] isValidNow:false typeof _id:string value:56b95
 ```
 ## Performance
 
