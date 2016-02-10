@@ -573,3 +573,4 @@ module.exports.filter = function(schema, opts) {
     return sch
   }
 }
+module.exports.types=types;
