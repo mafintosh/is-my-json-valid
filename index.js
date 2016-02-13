@@ -435,7 +435,18 @@ var compile = function(schema, cache, root, reporter, opts) {
       if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
 
       var factor = ((node.multipleOf | 0) !== node.multipleOf) ? Math.pow(10, node.multipleOf.toString().split('.').pop().length) : 1
-      if (factor > 1) validate('if ((%d*%s) % %d) {', factor, name, factor*node.multipleOf)
+      if (factor > 1) {
+        var x = function(factor, name, multipleOf) {
+          var factorName = ((name | 0) !== name) ? Math.pow(10, name.toString().split('.').pop().length) : 1
+          // automatically return true because if the passed value has more decimals than
+          // our multipleOf parameter, it means it will not be valid
+          if (factorName > factor) return true
+          // rounding the multiplication for cases when the floating point number precision is wrong
+          // eg: 100 * 2.2 = 220.00000000000003 or 100 * 2.3 = 229.99999999999997
+          else return Math.round(factor * name) % (factor * multipleOf)
+        }
+        validate('if ( (' + x.toString() + ')(%d, %s, %d) ) {', factor, name, node.multipleOf)
+      }
       else validate('if (%s % %d) {', name, node.multipleOf)
 
       error('has a remainder')
