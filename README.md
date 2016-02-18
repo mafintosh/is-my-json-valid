@@ -128,7 +128,7 @@ var validate = validator({
 })
 
 validate({hello: 100});
-console.log(validate.errors) // {field: 'data.hello', message: 'is the wrong type', value: 100}
+console.log(validate.errors) // {field: 'data.hello', message: 'is the wrong type', value: 100, type: 'string'}
 ```
 
 ## Greedy mode tries to validate as much as possible
