@@ -98,6 +98,7 @@ tape('additional props', function(t) {
   t.ok(validate({}))
   t.notOk(validate({foo:'bar'}))
   t.ok(validate.errors[0].value === 'data.foo', 'should output the property not allowed in verbose mode')
+  t.strictEqual(validate.errors[0].type, 'object', 'error object should contain the type')
   t.end()
 })
 
@@ -354,6 +355,7 @@ tape('verbose mode', function(t) {
   t.ok(validate({hello: 'string'}), 'should be valid')
   t.notOk(validate({hello: 100}), 'should not be valid')
   t.strictEqual(validate.errors[0].value, 100, 'error object should contain the invalid value')
+  t.strictEqual(validate.errors[0].type, 'string', 'error object should contain the type')
   t.end()
 })
 
