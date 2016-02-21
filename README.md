@@ -40,7 +40,7 @@ console.log(validate.errors)
 You can also pass the schema as a string
 
 ``` js
-var validate = validate('{"type": ... }')
+var validate = validator('{"type": ... }')
 ```
 
 Optionally you can use the require submodule to load a schema from `__dirname`
