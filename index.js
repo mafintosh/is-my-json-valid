@@ -98,13 +98,25 @@ var unique = function(array) {
   return true
 }
 
+var isMultipleOf = function(name, multipleOf) {
+  var res;
+  var factor = ((multipleOf | 0) !== multipleOf) ? Math.pow(10, multipleOf.toString().split('.').pop().length) : 1
+  if (factor > 1) {
+    var factorName = ((name | 0) !== name) ? Math.pow(10, name.toString().split('.').pop().length) : 1
+    if (factorName > factor) res = true
+    else res = Math.round(factor * name) % (factor * multipleOf)
+  }
+  else res = name % multipleOf;
+  return !res;
+}
+
 var toType = function(node) {
   return node.type
 }
 
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
-  var scope = {unique:unique, formats:fmts}
+  var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
     opts.greedy : false;
@@ -434,20 +446,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.multipleOf !== undefined) {
       if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
 
-      var factor = ((node.multipleOf | 0) !== node.multipleOf) ? Math.pow(10, node.multipleOf.toString().split('.').pop().length) : 1
-      if (factor > 1) {
-        var x = function(factor, name, multipleOf) {
-          var factorName = ((name | 0) !== name) ? Math.pow(10, name.toString().split('.').pop().length) : 1
-          // automatically return true because if the passed value has more decimals than
-          // our multipleOf parameter, it means it will not be valid
-          if (factorName > factor) return true
-          // rounding the multiplication for cases when the floating point number precision is wrong
-          // eg: 100 * 2.2 = 220.00000000000003 or 100 * 2.3 = 229.99999999999997
-          else return Math.round(factor * name) % (factor * multipleOf)
-        }
-        validate('if ( (' + x.toString() + ')(%d, %s, %d) ) {', factor, name, node.multipleOf)
-      }
-      else validate('if (%s % %d) {', name, node.multipleOf)
+      validate('if (!isMultipleOf(%s, %d)) {', name, node.multipleOf)
 
       error('has a remainder')
       validate('}')
