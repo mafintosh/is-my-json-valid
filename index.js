@@ -330,7 +330,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       var sub = get(root, opts && opts.schemas || {}, node.$ref)
       if (sub) {
         var fn = cache[node.$ref]
-        if (!fn) {
+        if (!fn || (!fn.reporter && reporter)) {
           cache[node.$ref] = function proxy(data) {
             var errors = fn.errors
             var result = fn(data)
@@ -338,6 +338,7 @@ var compile = function(schema, cache, root, reporter, opts) {
             fn.errors = errors
             return result;
           }
+          cache[node.$ref].reporter = reporter
           fn = compile(sub, cache, root, reporter, opts)
         }
         var n = gensym('ref')
