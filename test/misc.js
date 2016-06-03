@@ -20,6 +20,14 @@ tape('simple', function(t) {
   t.end()
 })
 
+tape('data is undefined', function (t) {
+  var validate = validator({type: 'string'})
+
+  t.notOk(validate(null))
+  t.notOk(validate(undefined))
+  t.end()
+})
+
 tape('advanced', function(t) {
   var validate = validator(cosmic.schema)
 
