@@ -202,6 +202,22 @@ tape('exclusiveMinimum/exclusiveMaximum', function(t) {
   t.end()
 })
 
+tape('minimum/maximum number type', function(t) {
+  var validate = validator({
+    type: ['integer', 'null'],
+    minimum: 1,
+    maximum: 100
+  })
+
+  t.notOk(validate(-1))
+  t.notOk(validate(0))
+  t.ok(validate(null))
+  t.ok(validate(1))
+  t.ok(validate(100))
+  t.notOk(validate(101))
+  t.end()
+})
+
 tape('custom format', function(t) {
   var validate = validator({
     type: 'object',
