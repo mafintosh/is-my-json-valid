@@ -514,15 +514,23 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.minimum !== undefined) {
+      if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
+
       validate('if (%s %s %d) {', name, node.exclusiveMinimum ? '<=' : '<', node.minimum)
       error('is less than minimum')
       validate('}')
+
+      if (type !== 'number' && type !== 'integer') validate('}')
     }
 
     if (node.maximum !== undefined) {
+      if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
+
       validate('if (%s %s %d) {', name, node.exclusiveMaximum ? '>=' : '>', node.maximum)
       error('is more than maximum')
       validate('}')
+
+      if (type !== 'number' && type !== 'integer') validate('}')
     }
 
     if (properties) {
