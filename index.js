@@ -109,10 +109,6 @@ var isMultipleOf = function(name, multipleOf) {
   return !res;
 }
 
-var toType = function(node) {
-  return node.type
-}
-
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
@@ -217,10 +213,6 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (Array.isArray(node.required)) {
-      var isUndefined = function(req) {
-        return genobj(name, req) + ' === undefined'
-      }
-
       var checkRequired = function (req) {
         var prop = genobj(name, req);
         validate('if (%s === undefined) {', prop)
