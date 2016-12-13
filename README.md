@@ -154,7 +154,6 @@ console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
                              //  {field: 'data.x', message: 'is the wrong type'}]
 ```
 
-<<<<<<< HEAD
 ## Extend the supported data types using `types` option
 
 Add additional types (or extend the default types) by specifying the `types` option. For example if you need to add a validator function for type `file` (Swagger has a data type file), define file validator function as an `option` to validator.
@@ -171,7 +170,7 @@ var validate = validator(schema, {
 validate('somefile.txt');
 
 ```
-=======
+
 ## Error messages
 
 Here is a list of possible `message` values for errors:
@@ -198,7 +197,6 @@ Here is a list of possible `message` values for errors:
 * `has less length than allowed`
 * `is less than minimum`
 * `is more than maximum`
->>>>>>> 8015f4bc67fdc3f6aee162bfcfb0765e474d2344
 
 ## Performance
 
