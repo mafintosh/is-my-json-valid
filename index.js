@@ -109,10 +109,6 @@ var isMultipleOf = function(name, multipleOf) {
   return !res;
 }
 
-var toType = function(node) {
-  return node.type
-}
-
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
@@ -217,10 +213,6 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (Array.isArray(node.required)) {
-      var isUndefined = function(req) {
-        return genobj(name, req) + ' === undefined'
-      }
-
       var checkRequired = function (req) {
         var prop = genobj(name, req);
         validate('if (%s === undefined) {', prop)
@@ -528,15 +520,23 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.minimum !== undefined) {
+      if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
+
       validate('if (%s %s %d) {', name, node.exclusiveMinimum ? '<=' : '<', node.minimum)
       error('is less than minimum')
       validate('}')
+
+      if (type !== 'number' && type !== 'integer') validate('}')
     }
 
     if (node.maximum !== undefined) {
+      if (type !== 'number' && type !== 'integer') validate('if (%s) {', types.number(name))
+
       validate('if (%s %s %d) {', name, node.exclusiveMaximum ? '>=' : '>', node.maximum)
       error('is more than maximum')
       validate('}')
+
+      if (type !== 'number' && type !== 'integer') validate('}')
     }
 
     if (properties) {
@@ -554,6 +554,8 @@ var compile = function(schema, cache, root, reporter, opts) {
 
   var validate = genfun
     ('function validate(data) {')
+      // Since undefined is not a valid JSON value, we coerce to null and other checks will catch this
+      ('if (data === undefined) data = null')
       ('validate.errors = null')
       ('var errors = 0')
 
