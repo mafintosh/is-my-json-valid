@@ -176,6 +176,10 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     var valid = [].concat(type)
       .map(function(t) {
+        if (t && !types.hasOwnProperty(t)) {
+          throw new Error('Unknown type: ' + t)
+        }
+
         return types[t || 'any'](name)
       })
       .join(' || ') || 'true'
