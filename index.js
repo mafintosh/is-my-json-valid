@@ -82,6 +82,18 @@ types.integer = function(name) {
   return 'typeof '+name+' === "number" && (Math.floor('+name+') === '+name+' || '+name+' > 9007199254740992 || '+name+' < -9007199254740992)'
 }
 
+types.int2 = function(name) {
+  return 'typeof '+name+' === "number" && (Math.floor('+name+') === '+name+' || '+name+' > 32767 || '+name+' < -32768)'
+}
+
+types.int4 = function(name) {
+  return 'typeof '+name+' === "number" && (Math.floor('+name+') === '+name+' || '+name+' > 2147483647 || '+name+' < -2147483648)'
+}
+
+types.int8 = function(name) {
+  return types.integer(name)
+}
+
 types.string = function(name) {
   return 'typeof '+name+' === "string"'
 }
