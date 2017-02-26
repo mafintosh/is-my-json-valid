@@ -176,6 +176,9 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     var valid = [].concat(type)
       .map(function(t) {
+		if("function" !== typeof  types[t || 'any']){
+			throw new Error("Unknown type " + type);
+		}
         return types[t || 'any'](name)
       })
       .join(' || ') || 'true'
@@ -583,4 +586,4 @@ module.exports.filter = function(schema, opts) {
     validate(sch)
     return sch
   }
-}
+};
