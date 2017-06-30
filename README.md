@@ -185,7 +185,9 @@ Here is a list of possible `message` values for errors:
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.
 
-At the time of writing, is-my-json-valid is the __fastest validator__ when running
+At the time of writing, is-my-json-valid is the __fastest validator__ when running.
+
+Update (2017 06 30): [Ajv](https://github.com/epoberezkin/ajv) is now the fastest JSON schema validator. See [performance](https://github.com/epoberezkin/ajv#performance) comparison.
 
 * [json-schema-benchmark](https://github.com/Muscula/json-schema-benchmark)
 * [cosmicreals.com benchmark](http://cosmicrealms.com/blog/2014/08/29/benchmark-of-node-dot-js-json-validation-modules-part-3/)
