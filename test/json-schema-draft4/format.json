@@ -42,6 +42,32 @@
         ]
     },
     {
+        "description": "validation of URI templates",
+        "schema": {"format": "uri-template"},
+        "tests": [
+            {
+                "description": "a valid URI template",
+                "data": "{{protocol}}://foo.bar/?baz=qux#quux",
+                "valid": true
+            },
+            {
+                "description": "a valid URI",
+                "data": "http://foo.bar/?baz=qux#quux",
+                "valid": true
+            },
+            {
+                "description": "an invalid URI template",
+                "data": "\\\\WINDOWS\\fileshare",
+                "valid": false
+            },
+            {
+                "description": "an invalid URI though valid URI reference",
+                "data": "abc",
+                "valid": false
+            }
+        ]
+    },
+    {
         "description": "validation of e-mail addresses",
         "schema": {"format": "email"},
         "tests": [
