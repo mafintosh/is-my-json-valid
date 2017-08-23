@@ -93,20 +93,28 @@ validate(42) // return false
 
 ## Filtering away additional properties
 
-is-my-json-valid supports filtering away properties not in the schema
+is-my-json-valid supports filtering away properties not in the schema.
+The option `filter` changes the semantics of the `additionalProperties: false`,
+such that additional properties are deleted instead of causing a validation
+error. Be warned this is a non-standard feature, and it will mutate the input
+object.
 
 ``` js
-var filter = validator.filter({
-  required: true,
+var schema = {
   type: 'object',
   properties: {
-    hello: {type: 'string', required: true}
+    hello: {type: 'string'}
   },
   additionalProperties: false
-})
+};
+
+var validateAndfilter = validator(schema, {
+  filter: true
+});
 
 var doc = {hello: 'world', notInSchema: true}
-console.log(filter(doc)) // {hello: 'world'}
+console.log(validateAndfilter(doc)) // true (ie. no error)
+console.log(doc) // {hello: 'world'}
 ```
 
 ## Verbose mode outputs the value on errors

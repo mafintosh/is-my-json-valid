@@ -137,6 +137,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
+  var validate;
   var visit = function(name, node, reporter, filter) {
     var properties = node.properties
     var type = node.type
@@ -309,8 +310,12 @@ var compile = function(schema, cache, root, reporter, opts) {
           ('if (%s) {', additionalProp)
 
       if (node.additionalProperties === false) {
-        if (filter) validate('delete %s', name+'['+keys+'['+i+']]')
-        error('has additional properties', null, JSON.stringify(name+'.') + ' + ' + keys + '['+i+']')
+        if (filter) {
+          validate('delete %s', name+'['+keys+'['+i+']]')
+        } else {
+          error('has additional properties', null,
+                JSON.stringify(name+'.') + ' + ' + keys + '['+i+']')
+        }
       } else {
         visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter)
       }
@@ -542,7 +547,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     while (indent--) validate('}')
   }
 
-  var validate = genfun
+  validate = genfun
     ('function validate(data) {')
       // Since undefined is not a valid JSON value, we coerce to null and other checks will catch this
       ('if (data === undefined) data = null')
@@ -579,12 +584,4 @@ var compile = function(schema, cache, root, reporter, opts) {
 module.exports = function(schema, opts) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
   return compile(schema, {}, schema, true, opts)
-}
-
-module.exports.filter = function(schema, opts) {
-  var validate = module.exports(schema, xtend(opts, {filter: true}))
-  return function(sch) {
-    validate(sch)
-    return sch
-  }
 }
