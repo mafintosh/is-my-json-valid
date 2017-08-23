@@ -75,7 +75,7 @@ types.object = function(name) {
 }
 
 types.number = function(name) {
-  return 'typeof '+name+' === "number"'
+  return 'typeof '+name+' === "number" && isFinite('+name+')'
 }
 
 types.integer = function(name) {
