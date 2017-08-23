@@ -109,6 +109,34 @@ var doc = {hello: 'world', notInSchema: true}
 console.log(filter(doc)) // {hello: 'world'}
 ```
 
+## Use default values from schema
+
+is-my-json-valid supports using default values from the schema.
+When activated this will set the properties to the value of the `default`
+property provided in the schema.
+
+```js
+var validate = validator({
+  type: 'object',
+  properties: {
+    hello: {
+      type: 'string',
+      default: 'world'
+    }
+  }
+}, {
+  useDefault: true
+});
+
+var value = {};
+validate(value);
+console.log(value); // {hello: 'world'}
+```
+
+This is a non-standard feature that will mutate the input. It only works
+on objects and arrays. But is useful for keeping defaults in sync with values
+documented in your schema.
+
 ## Verbose mode outputs the value on errors
 
 is-my-json-valid outputs the value causing an error when verbose is set to true
