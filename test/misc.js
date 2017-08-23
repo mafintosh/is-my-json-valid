@@ -15,7 +15,7 @@ tape('simple', function(t) {
   var validate = validator(schema)
 
   t.ok(validate({hello: 'world'}), 'should be valid')
-  t.notOk(validate(), 'should be invalid')
+  t.notOk(validate(null), 'should be invalid')
   t.notOk(validate({}), 'should be invalid')
   t.end()
 })
@@ -120,7 +120,7 @@ tape('array', function(t) {
   })
 
   t.notOk(validate({}), 'wrong type')
-  t.notOk(validate(), 'is required')
+  t.notOk(validate(null), 'is required')
   t.ok(validate(['test']))
   t.end()
 })
