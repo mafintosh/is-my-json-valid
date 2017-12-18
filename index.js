@@ -151,6 +151,10 @@ var compile = function(schema, cache, root, reporter, opts) {
       tuple = true
     }
 
+    if(!Array.isArray(schemaPath)) {
+      schemaPath = [];
+    }
+
     var indent = 0
     var error = function(msg, prop, value) {
       validate('errors++')
