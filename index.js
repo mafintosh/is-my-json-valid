@@ -333,16 +333,30 @@ var compile = function(schema, cache, root, reporter, opts) {
       var sub = get(root, opts && opts.schemas || {}, node.$ref)
       if (sub) {
         var fn = cache[node.$ref]
-        if (!fn) {
+        if (!fn || (!fn.reporter && reporter)) {
           cache[node.$ref] = function proxy(data) {
-            return fn(data)
+            var errors = fn.errors
+            var result = fn(data)
+            proxy.errors = fn.errors;
+            fn.errors = errors
+            return result;
           }
-          fn = compile(sub, cache, root, false, opts)
+          cache[node.$ref].reporter = reporter
+          fn = compile(sub, cache, root, reporter, opts)
         }
         var n = gensym('ref')
         scope[n] = fn
         validate('if (!(%s(%s))) {', n, name)
-        error('referenced schema does not match')
+        if (!reporter){
+          error('referenced schema does not match')
+        } else {
+          validate('errors += %s.errors.length', n)
+          validate('if (validate.errors === null) validate.errors = []')
+          validate('%s.errors.forEach(function(item){', n)
+          validate('item.field = item.field.replace(/^data/, \'%s\')', name)
+          validate('validate.errors.push(item)')
+          validate('})')
+        }
         validate('}')
       }
     }
