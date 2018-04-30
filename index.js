@@ -212,7 +212,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.format && fmts[node.format]) {
-      if (type !== 'string' && formats[node.format]) validate('if (%s) {', types.string(name))
+      if (type !== 'string' && fmts[node.format]) validate('if (%s) {', types.string(name))
       var n = gensym('format')
       scope[n] = fmts[node.format]
 
@@ -220,7 +220,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       else validate('if (!%s.test(%s)) {', n, name)
       error('must be '+node.format+' format')
       validate('}')
-      if (type !== 'string' && formats[node.format]) validate('}')
+      if (type !== 'string' && fmts[node.format]) validate('}')
     }
 
     if (Array.isArray(node.required)) {
