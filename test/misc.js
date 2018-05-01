@@ -250,6 +250,7 @@ tape('custom format string or null', function (t) {
 
   t.notOk(validate({foo:''}), 'not as')
   t.notOk(validate({foo:'bar'}), 'not as')
+  t.notOk(validate({foo:123}), 'not as if number')
   t.ok(validate({foo:'a'}), 'as')
   t.ok(validate({foo:null}), 'as')
   t.end()
