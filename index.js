@@ -110,6 +110,10 @@ var isMultipleOf = function(name, multipleOf) {
 }
 
 var compile = function(schema, cache, root, reporter, opts) {
+  if (Buffer.isBuffer(schema) || schema === null || (typeof schema !== 'string' && typeof schema !== 'object')) {
+    throw new Error('First argument must be either a string a normal JavaScript object')
+  }
+
   var fmts = opts ? xtend(formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
   var verbose = opts ? !!opts.verbose : false;

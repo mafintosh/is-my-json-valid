@@ -3,6 +3,28 @@ var cosmic = require('./fixtures/cosmic')
 var validator = require('../')
 var validatorRequire = require('../require')
 
+tape('invalid schemas', function(t) {
+  t.throws(function() {
+    validater(Buffer.from('foo'))
+  })
+  t.throws(function() {
+    validater(42)
+  })
+  t.throws(function() {
+    validater(null)
+  })
+  t.throws(function() {
+    validater(undefined)
+  })
+  t.throws(function() {
+    validater(Symbol())
+  })
+  t.throws(function() {
+    validater(NaN)
+  })
+  t.end()
+})
+
 tape('simple', function(t) {
   var schema = {
     required: true,
