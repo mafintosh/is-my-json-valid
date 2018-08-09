@@ -16,12 +16,16 @@ interface StringSchema {
 
 type LeafSchema = NullSchema | BooleanSchema | NumberSchema | StringSchema
 
-interface ArraySchema<T extends LeafSchema | ArraySchema<LeafSchema | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> {
+interface EnumSchema<T> {
+  enum: T[]
+}
+
+interface ArraySchema<T extends LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> {
   type: 'array'
   items: T
 }
 
-type ObjectProps = { [K in string]: LeafSchema | ArraySchema<LeafSchema | ArraySchema<LeafSchema | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any> }
+type ObjectProps = { [K in string]: LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any> }
 
 interface ObjectSchema<T extends ObjectProps, R extends keyof T> {
   additionalProperties?: boolean
@@ -37,16 +41,18 @@ declare type ExtractedSchemaObject<T, R> = {
 }
 
 declare type ExtractSchemaType<Type> = (
-    Type extends NullSchema ? null
-    : Type extends BooleanSchema ? boolean
-    : Type extends NumberSchema ? number
-    : Type extends StringSchema ? string
-    : Type extends ArraySchema<infer T> ? ExtractedSchemaArray<T>
-    : Type extends ObjectSchema<infer T, infer R> ? ExtractedSchemaObject<T, R>
-    : never
+  Type extends EnumSchema<infer T> ? T
+  : Type extends NullSchema ? null
+  : Type extends BooleanSchema ? boolean
+  : Type extends NumberSchema ? number
+  : Type extends StringSchema ? string
+  : Type extends ArraySchema<infer T> ? ExtractedSchemaArray<T>
+  : Type extends ObjectSchema<infer T, infer R> ? ExtractedSchemaObject<T, R>
+  : never
 )
 
 declare type GenericSchema = (
+  { enum: any[] } |
   { type: 'string' | 'number' | 'boolean' | 'null' } |
   { type: 'array', items: GenericSchema } |
   { type: 'object', properties: ObjectProps }

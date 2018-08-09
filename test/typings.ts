@@ -144,3 +144,40 @@ if (user2Validator(input)) {
     assertType<string>(input.items[0])
   }
 }
+
+const booleanValidator = createValidator({
+  enum: [true, false]
+})
+
+if (booleanValidator(input)) {
+  assertType<boolean>(input)
+}
+
+const specificValuesValidator = createValidator({
+  enum: [
+    true as true,
+    1000 as 1000,
+    'XX' as 'XX'
+  ]
+})
+
+if (specificValuesValidator(input)) {
+  assertType<true | 1000 | 'XX'>(input)
+}
+
+const metricValidator = createValidator({
+  type: 'object',
+  properties: {
+    name: { type: 'string', enum: ['page-view' as 'page-view'] },
+    page: { type: 'string', minLength: 0 }
+  },
+  required: [
+    'name',
+    'page'
+  ]
+})
+
+if (metricValidator(input)) {
+  assertType<'page-view'>(input.name)
+  assertType<string>(input.page)
+}
