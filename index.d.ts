@@ -1,3 +1,5 @@
+type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema
+
 interface NullSchema {
   type: 'null'
 }
@@ -14,20 +16,19 @@ interface StringSchema {
   type: 'string'
 }
 
-type LeafSchema = NullSchema | BooleanSchema | NumberSchema | StringSchema
-
+interface AnyEnumSchema extends EnumSchema<any> {}
 interface EnumSchema<T> {
   enum: T[]
 }
 
-interface ArraySchema<T extends LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> {
+interface AnyArraySchema extends ArraySchema<AnySchema> {}
+interface ArraySchema<T extends AnySchema> {
   type: 'array'
   items: T
 }
 
-type ObjectProps = { [K in string]: LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any> }
-
-interface ObjectSchema<T extends ObjectProps, R extends keyof T> {
+interface AnyObjectSchema extends ObjectSchema<Record<string, AnySchema>, string> {}
+interface ObjectSchema<T extends Record<string, AnySchema>, R extends keyof T> {
   additionalProperties?: boolean
   type: 'object'
   properties: T
@@ -51,13 +52,6 @@ declare type ExtractSchemaType<Type> = (
   : never
 )
 
-declare type GenericSchema = (
-  { enum: any[] } |
-  { type: 'string' | 'number' | 'boolean' | 'null' } |
-  { type: 'array', items: GenericSchema } |
-  { type: 'object', properties: ObjectProps }
-)
-
 declare namespace factory {
   interface ValidationError {
     field: string
@@ -78,11 +72,11 @@ declare interface Filter<Output> {
 }
 
 declare interface Factory {
-  <T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
-  <T extends GenericSchema> (schema: T, options?: any): Validator<T>
+  <T extends Record<string, AnySchema>, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
+  <T extends AnySchema> (schema: T, options?: any): Validator<T>
 
-  createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
-  createFilter<T extends GenericSchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
+  createFilter<T extends Record<string, AnySchema>, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
+  createFilter<T extends AnySchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
 }
 
 declare const factory: Factory
