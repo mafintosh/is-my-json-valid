@@ -1,4 +1,5 @@
 type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema
+type StringKeys<T> = (keyof T) & string
 
 interface NullSchema {
   type: 'null'
@@ -28,20 +29,20 @@ interface ArraySchema<ItemSchema extends AnySchema> {
 }
 
 interface AnyObjectSchema extends ObjectSchema<Record<string, AnySchema>, string> {}
-interface ObjectSchema<Properties extends Record<string, AnySchema>, Required extends keyof Properties> {
+interface ObjectSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> {
   additionalProperties?: boolean
   type: 'object'
   properties: Properties
   required: Required[]
 }
 
-interface ArrayFromSchema<Schema> extends Array<TypeFromSchema<Schema>> {}
+interface ArrayFromSchema<ItemSchema extends AnySchema> extends Array<TypeFromSchema<ItemSchema>> {}
 
-declare type ObjectFromSchema<Properties, Required> = {
+type ObjectFromSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> = {
   [Key in keyof Properties]: (Key extends Required ? TypeFromSchema<Properties[Key]> : TypeFromSchema<Properties[Key]> | undefined)
 }
 
-declare type TypeFromSchema<Schema> = (
+type TypeFromSchema<Schema extends AnySchema> = (
     Schema extends EnumSchema<infer Enum> ? Enum
   : Schema extends NullSchema ? null
   : Schema extends BooleanSchema ? boolean
@@ -61,21 +62,21 @@ declare namespace factory {
   }
 }
 
-declare interface Validator<Schema, Output = TypeFromSchema<Schema>> {
+interface Validator<Schema extends AnySchema, Output = TypeFromSchema<Schema>> {
   (input: unknown, options?: any): input is Output
   errors: factory.ValidationError[]
   toJSON(): Schema
 }
 
-declare interface Filter<Output> {
+interface Filter<Output> {
   (input: Output, options?: any): Output
 }
 
-declare interface Factory {
-  <Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
+interface Factory {
+  <Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
   <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
 
-  createFilter<Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ObjectFromSchema<Properties, Required>>
+  createFilter<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ObjectFromSchema<Properties, Required>>
   createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<TypeFromSchema<Schema>>
 }
 
