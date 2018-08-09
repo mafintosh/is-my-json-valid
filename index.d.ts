@@ -35,20 +35,20 @@ interface ObjectSchema<Properties extends Record<string, AnySchema>, Required ex
   required: Required[]
 }
 
-interface ExtractedSchemaArray<Schema> extends Array<ExtractSchemaType<Schema>> {}
+interface ArrayFromSchema<Schema> extends Array<TypeFromSchema<Schema>> {}
 
-declare type ExtractedSchemaObject<Properties, Required> = {
-  [Key in keyof Properties]: (Key extends Required ? ExtractSchemaType<Properties[Key]> : ExtractSchemaType<Properties[Key]> | undefined)
+declare type ObjectFromSchema<Properties, Required> = {
+  [Key in keyof Properties]: (Key extends Required ? TypeFromSchema<Properties[Key]> : TypeFromSchema<Properties[Key]> | undefined)
 }
 
-declare type ExtractSchemaType<Schema> = (
+declare type TypeFromSchema<Schema> = (
     Schema extends EnumSchema<infer Enum> ? Enum
   : Schema extends NullSchema ? null
   : Schema extends BooleanSchema ? boolean
   : Schema extends NumberSchema ? number
   : Schema extends StringSchema ? string
-  : Schema extends ArraySchema<infer ItemSchema> ? ExtractedSchemaArray<ItemSchema>
-  : Schema extends ObjectSchema<infer Properties, infer Required> ? ExtractedSchemaObject<Properties, Required>
+  : Schema extends ArraySchema<infer ItemSchema> ? ArrayFromSchema<ItemSchema>
+  : Schema extends ObjectSchema<infer Properties, infer Required> ? ObjectFromSchema<Properties, Required>
   : never
 )
 
@@ -61,7 +61,7 @@ declare namespace factory {
   }
 }
 
-declare interface Validator<Schema, Output = ExtractSchemaType<Schema>> {
+declare interface Validator<Schema, Output = TypeFromSchema<Schema>> {
   (input: unknown, options?: any): input is Output
   errors: factory.ValidationError[]
   toJSON(): Schema
@@ -75,8 +75,8 @@ declare interface Factory {
   <Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
   <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
 
-  createFilter<Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ExtractedSchemaObject<Properties, Required>>
-  createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<ExtractSchemaType<Schema>>
+  createFilter<Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ObjectFromSchema<Properties, Required>>
+  createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<TypeFromSchema<Schema>>
 }
 
 declare const factory: Factory
