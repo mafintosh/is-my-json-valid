@@ -17,38 +17,38 @@ interface StringSchema {
 }
 
 interface AnyEnumSchema extends EnumSchema<any> {}
-interface EnumSchema<T> {
-  enum: T[]
+interface EnumSchema<Enum> {
+  enum: Enum[]
 }
 
 interface AnyArraySchema extends ArraySchema<AnySchema> {}
-interface ArraySchema<T extends AnySchema> {
+interface ArraySchema<ItemSchema extends AnySchema> {
   type: 'array'
-  items: T
+  items: ItemSchema
 }
 
 interface AnyObjectSchema extends ObjectSchema<Record<string, AnySchema>, string> {}
-interface ObjectSchema<T extends Record<string, AnySchema>, R extends keyof T> {
+interface ObjectSchema<Properties extends Record<string, AnySchema>, Required extends keyof Properties> {
   additionalProperties?: boolean
   type: 'object'
-  properties: T
-  required: R[]
+  properties: Properties
+  required: Required[]
 }
 
-interface ExtractedSchemaArray<T> extends Array<ExtractSchemaType<T>> {}
+interface ExtractedSchemaArray<Schema> extends Array<ExtractSchemaType<Schema>> {}
 
-declare type ExtractedSchemaObject<T, R> = {
-  [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined)
+declare type ExtractedSchemaObject<Properties, Required> = {
+  [Key in keyof Properties]: (Key extends Required ? ExtractSchemaType<Properties[Key]> : ExtractSchemaType<Properties[Key]> | undefined)
 }
 
-declare type ExtractSchemaType<Type> = (
-  Type extends EnumSchema<infer T> ? T
-  : Type extends NullSchema ? null
-  : Type extends BooleanSchema ? boolean
-  : Type extends NumberSchema ? number
-  : Type extends StringSchema ? string
-  : Type extends ArraySchema<infer T> ? ExtractedSchemaArray<T>
-  : Type extends ObjectSchema<infer T, infer R> ? ExtractedSchemaObject<T, R>
+declare type ExtractSchemaType<Schema> = (
+    Schema extends EnumSchema<infer Enum> ? Enum
+  : Schema extends NullSchema ? null
+  : Schema extends BooleanSchema ? boolean
+  : Schema extends NumberSchema ? number
+  : Schema extends StringSchema ? string
+  : Schema extends ArraySchema<infer ItemSchema> ? ExtractedSchemaArray<ItemSchema>
+  : Schema extends ObjectSchema<infer Properties, infer Required> ? ExtractedSchemaObject<Properties, Required>
   : never
 )
 
@@ -72,11 +72,11 @@ declare interface Filter<Output> {
 }
 
 declare interface Factory {
-  <T extends Record<string, AnySchema>, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
-  <T extends AnySchema> (schema: T, options?: any): Validator<T>
+  <Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
+  <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
 
-  createFilter<T extends Record<string, AnySchema>, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
-  createFilter<T extends AnySchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
+  createFilter<Properties extends Record<string, AnySchema>, Required extends keyof Properties> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ExtractedSchemaObject<Properties, Required>>
+  createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<ExtractSchemaType<Schema>>
 }
 
 declare const factory: Factory
