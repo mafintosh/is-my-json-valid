@@ -9,6 +9,7 @@ function assertType<T>(value: T): void {}
 const input = null as unknown
 
 const nullValidator = createValidator({ type: 'null' })
+assertType<{ type: 'null' }>(nullValidator.toJSON())
 
 if (nullValidator(input)) {
   assertType<null>(input)
@@ -22,12 +23,14 @@ assertType<string>(nullValidator.errors[0].type)
 assertType<unknown>(nullValidator.errors[0].value)
 
 const numberValidator = createValidator({ type: 'number' })
+assertType<{ type: 'number' }>(numberValidator.toJSON())
 
 if (numberValidator(input)) {
   assertType<number>(input)
 }
 
 const stringValidator = createValidator({ type: 'string' })
+assertType<{ type: 'string' }>(stringValidator.toJSON())
 
 if (stringValidator(input)) {
   assertType<string>(input)

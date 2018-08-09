@@ -67,11 +67,21 @@ declare namespace factory {
   }
 }
 
-declare function createValidator<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): ((input: unknown, options?: any) => input is { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) }) & { errors: factory.ValidationError[] }
-declare function createValidator<T extends GenericSchema> (schema: T, options?: any): ((input: unknown, options?: any) => input is ExtractSchemaType<T>) & { errors: factory.ValidationError[] }
+declare interface Validator<Schema, Output = ExtractSchemaType<Schema>> {
+  (input: unknown, options?: any): input is Output
+  errors: factory.ValidationError[]
+  toJSON(): Schema
+}
 
-declare function createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): ((input: { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) }, options?: any) => { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) })
-declare function createFilter<T extends GenericSchema> (schema: T, options?: any): ((input: ExtractSchemaType<T>, options?: any) => ExtractSchemaType<T>)
+declare function createValidator<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
+declare function createValidator<T extends GenericSchema> (schema: T, options?: any): Validator<T>
+
+declare interface Filter<Output> {
+  (input: Output, options?: any): Output
+}
+
+declare function createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
+declare function createFilter<T extends GenericSchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
 
 declare type Factory = (typeof createValidator) & { filter: typeof createFilter }
 declare const factory: Factory
