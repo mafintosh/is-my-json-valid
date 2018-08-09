@@ -73,17 +73,18 @@ declare interface Validator<Schema, Output = ExtractSchemaType<Schema>> {
   toJSON(): Schema
 }
 
-declare function createValidator<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
-declare function createValidator<T extends GenericSchema> (schema: T, options?: any): Validator<T>
-
 declare interface Filter<Output> {
   (input: Output, options?: any): Output
 }
 
-declare function createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
-declare function createFilter<T extends GenericSchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
+declare interface Factory {
+  <T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Validator<ObjectSchema<T, R>>
+  <T extends GenericSchema> (schema: T, options?: any): Validator<T>
 
-declare type Factory = (typeof createValidator) & { filter: typeof createFilter }
+  createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): Filter<ExtractedSchemaObject<T, R>>
+  createFilter<T extends GenericSchema> (schema: T, options?: any): Filter<ExtractSchemaType<T>>
+}
+
 declare const factory: Factory
 
 export = factory
