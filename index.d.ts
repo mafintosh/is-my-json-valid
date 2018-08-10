@@ -1,4 +1,4 @@
-type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema | AnyAllOptionalObjectSchema
+type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema | AnyAllOptionalObjectSchema | AnyOneOfSchema
 type StringKeys<T> = (keyof T) & string
 
 interface NullSchema {
@@ -43,6 +43,8 @@ interface AllOptionalObjectSchema<Properties extends Record<string, AnySchema>> 
   properties: Properties
 }
 
+interface AnyOneOfSchema { oneOf: AnySchema[] }
+
 interface ArrayFromSchema<ItemSchema extends AnySchema> extends Array<TypeFromSchema<ItemSchema>> {}
 
 type ObjectFromSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> = {
@@ -76,16 +78,34 @@ interface Validator<Schema extends AnySchema, Output = TypeFromSchema<Schema>> {
   toJSON(): Schema
 }
 
-interface Filter<Output> {
+interface Filter<Schema extends AnySchema, Output = TypeFromSchema<Schema>> {
   (input: Output, options?: any): Output
 }
 
 interface Factory {
-  <Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
-  <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
+  /* One of object schema */
+              <Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>] }, options?: any): Validator<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2>>
+  createFilter<Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>] }, options?: any):    Filter<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2>>
+              <Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>, Properties3 extends Record<string, AnySchema>, Required3 extends StringKeys<Properties3>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>] }, options?: any): Validator<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2> | ObjectFromSchema<Properties3, Required3>>
+  createFilter<Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>, Properties3 extends Record<string, AnySchema>, Required3 extends StringKeys<Properties3>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>] }, options?: any):    Filter<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2> | ObjectFromSchema<Properties3, Required3>>
+              <Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>, Properties3 extends Record<string, AnySchema>, Required3 extends StringKeys<Properties3>, Properties4 extends Record<string, AnySchema>, Required4 extends StringKeys<Properties4>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>, ObjectSchema<Properties4, Required4>] }, options?: any): Validator<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>, ObjectSchema<Properties4, Required4>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2> | ObjectFromSchema<Properties3, Required3> | ObjectFromSchema<Properties4, Required4>>
+  createFilter<Properties1 extends Record<string, AnySchema>, Required1 extends StringKeys<Properties1>, Properties2 extends Record<string, AnySchema>, Required2 extends StringKeys<Properties2>, Properties3 extends Record<string, AnySchema>, Required3 extends StringKeys<Properties3>, Properties4 extends Record<string, AnySchema>, Required4 extends StringKeys<Properties4>> (schema: { oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>, ObjectSchema<Properties4, Required4>] }, options?: any):    Filter<{ oneOf: [ObjectSchema<Properties1, Required1>, ObjectSchema<Properties2, Required2>, ObjectSchema<Properties3, Required3>, ObjectSchema<Properties4, Required4>] }, ObjectFromSchema<Properties1, Required1> | ObjectFromSchema<Properties2, Required2> | ObjectFromSchema<Properties3, Required3> | ObjectFromSchema<Properties4, Required4>>
 
-  createFilter<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ObjectFromSchema<Properties, Required>>
-  createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<TypeFromSchema<Schema>>
+  /* One of plain schema */
+              <Schema1 extends AnySchema, Schema2 extends AnySchema> (schema: { oneOf: [Schema1, Schema2] }, options?: any): Validator<{ oneOf: [Schema1, Schema2] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2>>
+  createFilter<Schema1 extends AnySchema, Schema2 extends AnySchema> (schema: { oneOf: [Schema1, Schema2] }, options?: any):    Filter<{ oneOf: [Schema1, Schema2] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2>>
+              <Schema1 extends AnySchema, Schema2 extends AnySchema, Schema3 extends AnySchema> (schema: { oneOf: [Schema1, Schema2, Schema3] }, options?: any): Validator<{ oneOf: [Schema1, Schema2, Schema3] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2> | TypeFromSchema<Schema3>>
+  createFilter<Schema1 extends AnySchema, Schema2 extends AnySchema, Schema3 extends AnySchema> (schema: { oneOf: [Schema1, Schema2, Schema3] }, options?: any):    Filter<{ oneOf: [Schema1, Schema2, Schema3] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2> | TypeFromSchema<Schema3>>
+              <Schema1 extends AnySchema, Schema2 extends AnySchema, Schema3 extends AnySchema, Schema4 extends AnySchema> (schema: { oneOf: [Schema1, Schema2, Schema3, Schema4] }, options?: any): Validator<{ oneOf: [Schema1, Schema2, Schema3, Schema4] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2> | TypeFromSchema<Schema3> | TypeFromSchema<Schema4>>
+  createFilter<Schema1 extends AnySchema, Schema2 extends AnySchema, Schema3 extends AnySchema, Schema4 extends AnySchema> (schema: { oneOf: [Schema1, Schema2, Schema3, Schema4] }, options?: any):    Filter<{ oneOf: [Schema1, Schema2, Schema3, Schema4] }, TypeFromSchema<Schema1> | TypeFromSchema<Schema2> | TypeFromSchema<Schema3> | TypeFromSchema<Schema4>>
+
+  /* Object schema */
+              <Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
+  createFilter<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any):    Filter<ObjectSchema<Properties, Required>>
+
+  /* Plain schema */
+              <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
+  createFilter<Schema extends AnySchema> (schema: Schema, options?: any):    Filter<Schema>
 }
 
 declare const factory: Factory

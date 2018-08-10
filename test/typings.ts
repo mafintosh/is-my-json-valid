@@ -204,3 +204,112 @@ if (noRequiredFieldsValidator(input)) {
   if (typeof input.b !== 'undefined') assertType<string>(input.b)
   if (typeof input.c !== 'undefined') assertType<string>(input.c)
 }
+
+const animalValidator = createValidator({
+  oneOf: [
+    {
+      type: 'object',
+      properties: {
+        type: { enum: ['cat' as 'cat'] },
+        name: { type: 'string' }
+      },
+      required: [
+        'type',
+        'name'
+      ]
+    },
+    {
+      type: 'object',
+      properties: {
+        type: { enum: ['dog' as 'dog'] },
+        name: { type: 'string' }
+      },
+      required: [
+        'type',
+        'name'
+      ]
+    }
+  ]
+})
+
+if (animalValidator(input)) {
+  if (input.type !== 'cat') assertType<'dog'>(input.type)
+  if (input.type !== 'dog') assertType<'cat'>(input.type)
+  assertType<string>(input.name)
+}
+
+const shapeValidator = createValidator({
+  oneOf: [
+    { type: 'object', properties: { kind: { enum: ['triangle' as 'triangle'] } }, required: ['kind'] },
+    { type: 'object', properties: { kind: { enum: ['rectangle' as 'rectangle'] } }, required: ['kind'] },
+    { type: 'object', properties: { kind: { enum: ['circle' as 'circle'] } }, required: ['kind'] },
+  ]
+})
+
+if (shapeValidator(input)) {
+  if (input.kind !== 'triangle' && input.kind !== 'rectangle') assertType<'circle'>(input.kind)
+  if (input.kind !== 'rectangle' && input.kind !== 'circle') assertType<'triangle'>(input.kind)
+  if (input.kind !== 'circle' && input.kind !== 'triangle') assertType<'rectangle'>(input.kind)
+}
+
+const foobar = createValidator({
+  oneOf: [
+    { type: 'object', properties: { a: { type: 'string' } }, required: ['a'] },
+    { type: 'object', properties: { b: { type: 'number' } }, required: ['b'] },
+    { type: 'object', properties: { c: { type: 'boolean' } }, required: ['c'] },
+    { type: 'object', properties: { d: { type: 'null' } }, required: ['d'] },
+  ]
+})
+
+if (foobar(input)) {
+  if ('a' in input) assertType<string>(input.a)
+  if ('b' in input) assertType<number>(input.b)
+  if ('c' in input) assertType<boolean>(input.c)
+  if ('d' in input) assertType<null>(input.d)
+}
+
+const stringOrNullValidator = createValidator({
+  oneOf: [
+    { type: 'string' },
+    { type: 'null' }
+  ]
+})
+
+if (stringOrNullValidator(input)) {
+  if (typeof input !== 'object') assertType<string>(input)
+  if (typeof input !== 'string') assertType<null>(input)
+}
+
+const primitiveValidator = createValidator({
+  oneOf: [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+})
+
+if (primitiveValidator(input)) {
+  if (typeof input !== 'string' && typeof input !== 'number') assertType<boolean>(input)
+  if (typeof input !== 'number' && typeof input !== 'boolean') assertType<string>(input)
+  if (typeof input !== 'boolean' && typeof input !== 'string') assertType<number>(input)
+}
+
+const overengineeredColorValidator = createValidator({
+  oneOf: [
+    { enum: ['red' as 'red', 'pink' as 'pink'] },
+    { enum: ['green' as 'green', 'olive' as 'olive'] },
+    { enum: ['blue' as 'blue', 'teal' as 'teal'] },
+    { enum: ['yellow' as 'yellow', 'cream' as 'cream'] }
+  ]
+})
+
+if (overengineeredColorValidator(input)) {
+  if (input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue' && input !== 'teal' && input !== 'yellow') assertType<'cream'>(input)
+  if (input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue' && input !== 'teal' && input !== 'yellow' && input !== 'cream') assertType<'red'>(input)
+  if (input !== 'green' && input !== 'olive' && input !== 'blue' && input !== 'teal' && input !== 'yellow' && input !== 'cream' && input !== 'red') assertType<'pink'>(input)
+  if (input !== 'olive' && input !== 'blue' && input !== 'teal' && input !== 'yellow' && input !== 'cream' && input !== 'red' && input !== 'pink') assertType<'green'>(input)
+  if (input !== 'blue' && input !== 'teal' && input !== 'yellow' && input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green') assertType<'olive'>(input)
+  if (input !== 'teal' && input !== 'yellow' && input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive') assertType<'blue'>(input)
+  if (input !== 'yellow' && input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue') assertType<'teal'>(input)
+  if (input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue' && input !== 'teal') assertType<'yellow'>(input)
+}
