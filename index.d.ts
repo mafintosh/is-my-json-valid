@@ -1,3 +1,6 @@
+type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema
+type StringKeys<T> = (keyof T) & string
+
 interface NullSchema {
   type: 'null'
 }
@@ -14,48 +17,40 @@ interface StringSchema {
   type: 'string'
 }
 
-type LeafSchema = NullSchema | BooleanSchema | NumberSchema | StringSchema
-
-interface EnumSchema<T> {
-  enum: T[]
+interface AnyEnumSchema extends EnumSchema<any> {}
+interface EnumSchema<Enum> {
+  enum: Enum[]
 }
 
-interface ArraySchema<T extends LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> {
+interface AnyArraySchema extends ArraySchema<AnySchema> {}
+interface ArraySchema<ItemSchema extends AnySchema> {
   type: 'array'
-  items: T
+  items: ItemSchema
 }
 
-type ObjectProps = { [K in string]: LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ArraySchema<LeafSchema | EnumSchema<any> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any>> | ObjectSchema<ObjectProps, any> }
-
-interface ObjectSchema<T extends ObjectProps, R extends keyof T> {
+interface AnyObjectSchema extends ObjectSchema<Record<string, AnySchema>, string> {}
+interface ObjectSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> {
   additionalProperties?: boolean
   type: 'object'
-  properties: T
-  required: R[]
+  properties: Properties
+  required: Required[]
 }
 
-interface ExtractedSchemaArray<T> extends Array<ExtractSchemaType<T>> {}
+interface ArrayFromSchema<ItemSchema extends AnySchema> extends Array<TypeFromSchema<ItemSchema>> {}
 
-declare type ExtractedSchemaObject<T, R> = {
-  [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined)
+type ObjectFromSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> = {
+  [Key in keyof Properties]: (Key extends Required ? TypeFromSchema<Properties[Key]> : TypeFromSchema<Properties[Key]> | undefined)
 }
 
-declare type ExtractSchemaType<Type> = (
-  Type extends EnumSchema<infer T> ? T
-  : Type extends NullSchema ? null
-  : Type extends BooleanSchema ? boolean
-  : Type extends NumberSchema ? number
-  : Type extends StringSchema ? string
-  : Type extends ArraySchema<infer T> ? ExtractedSchemaArray<T>
-  : Type extends ObjectSchema<infer T, infer R> ? ExtractedSchemaObject<T, R>
+type TypeFromSchema<Schema extends AnySchema> = (
+    Schema extends EnumSchema<infer Enum> ? Enum
+  : Schema extends NullSchema ? null
+  : Schema extends BooleanSchema ? boolean
+  : Schema extends NumberSchema ? number
+  : Schema extends StringSchema ? string
+  : Schema extends ArraySchema<infer ItemSchema> ? ArrayFromSchema<ItemSchema>
+  : Schema extends ObjectSchema<infer Properties, infer Required> ? ObjectFromSchema<Properties, Required>
   : never
-)
-
-declare type GenericSchema = (
-  { enum: any[] } |
-  { type: 'string' | 'number' | 'boolean' | 'null' } |
-  { type: 'array', items: GenericSchema } |
-  { type: 'object', properties: ObjectProps }
 )
 
 declare namespace factory {
@@ -67,13 +62,24 @@ declare namespace factory {
   }
 }
 
-declare function createValidator<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): ((input: unknown, options?: any) => input is { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) }) & { errors: factory.ValidationError[] }
-declare function createValidator<T extends GenericSchema> (schema: T, options?: any): ((input: unknown, options?: any) => input is ExtractSchemaType<T>) & { errors: factory.ValidationError[] }
+interface Validator<Schema extends AnySchema, Output = TypeFromSchema<Schema>> {
+  (input: unknown, options?: any): input is Output
+  errors: factory.ValidationError[]
+  toJSON(): Schema
+}
 
-declare function createFilter<T extends ObjectProps, R extends keyof T> (schema: ObjectSchema<T, R>, options?: any): ((input: { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) }, options?: any) => { [K in keyof T]: (K extends R ? ExtractSchemaType<T[K]> : ExtractSchemaType<T[K]> | undefined) })
-declare function createFilter<T extends GenericSchema> (schema: T, options?: any): ((input: ExtractSchemaType<T>, options?: any) => ExtractSchemaType<T>)
+interface Filter<Output> {
+  (input: Output, options?: any): Output
+}
 
-declare type Factory = (typeof createValidator) & { filter: typeof createFilter }
+interface Factory {
+  <Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Validator<ObjectSchema<Properties, Required>>
+  <Schema extends AnySchema> (schema: Schema, options?: any): Validator<Schema>
+
+  createFilter<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> (schema: ObjectSchema<Properties, Required>, options?: any): Filter<ObjectFromSchema<Properties, Required>>
+  createFilter<Schema extends AnySchema> (schema: Schema, options?: any): Filter<TypeFromSchema<Schema>>
+}
+
 declare const factory: Factory
 
 export = factory
