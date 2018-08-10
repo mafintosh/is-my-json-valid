@@ -49,9 +49,8 @@ const personValidator = createValidator({
 
 if (personValidator(input)) {
   assertType<string>(input.name)
-  assertType<number | undefined>(input.age)
-  input.age === undefined
-  input.age === 1
+  if (typeof input.age !== 'undefined') assertType<number>(input.age)
+  if (typeof input.age !== 'number') assertType<undefined>(input.age)
 }
 
 const namesValidator = createValidator({
@@ -139,7 +138,8 @@ const user2Validator = createValidator({
 
 if (user2Validator(input)) {
   assertType<{ first: string | undefined, last: string }>(input.name)
-  assertType<string | undefined>(input.name.first)
+  if (typeof input.name.first !== 'undefined') assertType<string>(input.name.first)
+  if (typeof input.name.first !== 'string') assertType<undefined>(input.name.first)
   assertType<string>(input.name.last)
 
   if (input.items !== undefined) {
@@ -165,7 +165,9 @@ const specificValuesValidator = createValidator({
 })
 
 if (specificValuesValidator(input)) {
-  assertType<true | 1000 | 'XX'>(input)
+  if (input !== true && input !== 1000) assertType<'XX'>(input)
+  if (input !== 1000 && input !== 'XX') assertType<true>(input)
+  if (input !== 'XX' && input !== true) assertType<1000>(input)
 }
 
 const metricValidator = createValidator({
@@ -183,4 +185,22 @@ const metricValidator = createValidator({
 if (metricValidator(input)) {
   assertType<'page-view'>(input.name)
   assertType<string>(input.page)
+}
+
+const noRequiredFieldsValidator = createValidator({
+  type: 'object',
+  properties: {
+    a: { type: 'string' },
+    b: { type: 'string' },
+    c: { type: 'string' }
+  }
+})
+
+if (noRequiredFieldsValidator(input)) {
+  if (typeof input.a !== 'string') assertType<undefined>(input.a)
+  if (typeof input.b !== 'string') assertType<undefined>(input.b)
+  if (typeof input.c !== 'string') assertType<undefined>(input.c)
+  if (typeof input.a !== 'undefined') assertType<string>(input.a)
+  if (typeof input.b !== 'undefined') assertType<string>(input.b)
+  if (typeof input.c !== 'undefined') assertType<string>(input.c)
 }

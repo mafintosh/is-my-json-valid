@@ -1,4 +1,4 @@
-type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema
+type AnySchema = NullSchema | BooleanSchema | NumberSchema | StringSchema | AnyEnumSchema | AnyArraySchema | AnyObjectSchema | AnyAllOptionalObjectSchema
 type StringKeys<T> = (keyof T) & string
 
 interface NullSchema {
@@ -36,6 +36,13 @@ interface ObjectSchema<Properties extends Record<string, AnySchema>, Required ex
   required: Required[]
 }
 
+interface AnyAllOptionalObjectSchema extends AllOptionalObjectSchema<Record<string, AnySchema>> {}
+interface AllOptionalObjectSchema<Properties extends Record<string, AnySchema>> {
+  additionalProperties?: boolean
+  type: 'object'
+  properties: Properties
+}
+
 interface ArrayFromSchema<ItemSchema extends AnySchema> extends Array<TypeFromSchema<ItemSchema>> {}
 
 type ObjectFromSchema<Properties extends Record<string, AnySchema>, Required extends StringKeys<Properties>> = {
@@ -50,6 +57,7 @@ type TypeFromSchema<Schema extends AnySchema> = (
   : Schema extends StringSchema ? string
   : Schema extends ArraySchema<infer ItemSchema> ? ArrayFromSchema<ItemSchema>
   : Schema extends ObjectSchema<infer Properties, infer Required> ? ObjectFromSchema<Properties, Required>
+  : Schema extends AllOptionalObjectSchema<infer Properties> ? ObjectFromSchema<Properties, never>
   : never
 )
 
