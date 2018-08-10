@@ -186,3 +186,21 @@ if (metricValidator(input)) {
   assertType<'page-view'>(input.name)
   assertType<string>(input.page)
 }
+
+const noRequiredFieldsValidator = createValidator({
+  type: 'object',
+  properties: {
+    a: { type: 'string' },
+    b: { type: 'string' },
+    c: { type: 'string' }
+  }
+})
+
+if (noRequiredFieldsValidator(input)) {
+  if (typeof input.a !== 'string') assertType<undefined>(input.a)
+  if (typeof input.b !== 'string') assertType<undefined>(input.b)
+  if (typeof input.c !== 'string') assertType<undefined>(input.c)
+  if (typeof input.a !== 'undefined') assertType<string>(input.a)
+  if (typeof input.b !== 'undefined') assertType<string>(input.b)
+  if (typeof input.c !== 'undefined') assertType<string>(input.c)
+}
