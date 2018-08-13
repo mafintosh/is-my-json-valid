@@ -205,6 +205,36 @@ if (noRequiredFieldsValidator(input)) {
   if (typeof input.c !== 'undefined') assertType<string>(input.c)
 }
 
+const signupValidator = createValidator({
+  type: 'object',
+  properties: {
+    email: {
+      type: 'string'
+    },
+    paymentInformation: {
+      type: 'object',
+      properties: {
+        plan: { type: 'string' },
+        token: { type: 'string' }
+      },
+      required: [
+        'plan' as 'plan',
+        'token' as 'token'
+      ]
+    }
+  },
+  required: [
+    'paymentInformation'
+  ]
+})
+
+if (signupValidator(input)) {
+  if (typeof input.email !== 'string') assertType<undefined>(input.email)
+  if (typeof input.email !== 'undefined') assertType<string>(input.email)
+  assertType<string>(input.paymentInformation.plan)
+  assertType<string>(input.paymentInformation.token)
+}
+
 const animalValidator = createValidator({
   oneOf: [
     {
