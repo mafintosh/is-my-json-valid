@@ -343,3 +343,68 @@ if (overengineeredColorValidator(input)) {
   if (input !== 'yellow' && input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue') assertType<'teal'>(input)
   if (input !== 'cream' && input !== 'red' && input !== 'pink' && input !== 'green' && input !== 'olive' && input !== 'blue' && input !== 'teal') assertType<'yellow'>(input)
 }
+
+const nullableStringValidator = createValidator({
+  type: ['string', 'null']
+})
+
+if (nullableStringValidator(input)) {
+  if (typeof input !== 'object') assertType<string>(input)
+  if (typeof input !== 'string') assertType<null>(input)
+}
+
+const nullableNameValidator = createValidator({
+  type: 'object',
+  properties: {
+    name: { type: ['string', 'null'] }
+  },
+  required: [
+    'name'
+  ]
+})
+
+if (nullableNameValidator(input)) {
+  if (typeof input.name !== 'object') assertType<string>(input.name)
+  if (typeof input.name !== 'string') assertType<null>(input.name)
+}
+
+const nullableInventoryValidator = createValidator({
+  type: 'object',
+  properties: {
+    inventory: {
+      type: ['array', 'null'],
+      items: { type: 'string' }
+    }
+  },
+  required: [
+    'inventory'
+  ]
+})
+
+if (nullableInventoryValidator(input)) {
+  if (input.inventory === null) assertType<null>(input.inventory)
+  if (input.inventory !== null) assertType<string[]>(input.inventory)
+}
+
+const nullableParentValidator = createValidator({
+  type: 'object',
+  properties: {
+    parent: {
+      type: ['object', 'null'],
+      properties: {
+        name: { type: 'string' }
+      },
+      required: [
+        'name' as 'name'
+      ]
+    }
+  },
+  required: [
+    'parent'
+  ]
+})
+
+if (nullableParentValidator(input)) {
+  if (input.parent === null) assertType<null>(input.parent)
+  if (input.parent !== null) assertType<string>(input.parent.name)
+}
