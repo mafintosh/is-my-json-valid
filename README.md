@@ -1,21 +1,22 @@
 # is-my-json-valid
 
-A [JSONSchema](http://json-schema.org/) validator that uses code generation
-to be extremely fast
-
-```
-npm install is-my-json-valid
-```
+A [JSONSchema](https://json-schema.org/) validator that uses code generation to be extremely fast.
 
 It passes the entire JSONSchema v4 test suite except for `remoteRefs` and `maxLength`/`minLength` when using unicode surrogate pairs.
 
-[![build status](http://img.shields.io/travis/mafintosh/is-my-json-valid.svg?style=flat)](http://travis-ci.org/mafintosh/is-my-json-valid)
+[![build status](https://img.shields.io/travis/mafintosh/is-my-json-valid.svg?style=flat)](https://travis-ci.org/mafintosh/is-my-json-valid)
+
+## Installation
+
+```sh
+npm install --save is-my-json-valid
+```
 
 ## Usage
 
 Simply pass a schema to compile it
 
-``` js
+```js
 var validator = require('is-my-json-valid')
 
 var validate = validator({
@@ -39,13 +40,13 @@ console.log(validate.errors)
 
 You can also pass the schema as a string
 
-``` js
+```js
 var validate = validator('{"type": ... }')
 ```
 
 Optionally you can use the require submodule to load a schema from `__dirname`
 
-``` js
+```js
 var validator = require('is-my-json-valid/require')
 var validate = validator('my-schema.json')
 ```
@@ -55,7 +56,7 @@ var validate = validator('my-schema.json')
 is-my-json-valid supports the formats specified in JSON schema v4 (such as date-time).
 If you want to add your own custom formats pass them as the formats options to the validator
 
-``` js
+```js
 var validate = validator({
   type: 'string',
   required: true,
@@ -74,7 +75,7 @@ console.log(validate('ab')) // false
 
 You can pass in external schemas that you reference using the `$ref` attribute as the `schemas` option
 
-``` js
+```js
 var ext = {
   required: true,
   type: 'string'
@@ -95,7 +96,7 @@ validate(42) // return false
 
 is-my-json-valid supports filtering away properties not in the schema
 
-``` js
+```js
 var filter = validator.filter({
   required: true,
   type: 'object',
@@ -116,7 +117,7 @@ When the `verbose` options is set to `true`, `is-my-json-valid` also outputs:
 - `value`: The data value that caused the error
 - `schemaPath`: an array of keys indicating which sub-schema failed
 
-``` js
+```js
 var schema = {
   required: true,
   type: 'object',
@@ -141,7 +142,8 @@ console.log(validate.errors)
 ```
 
 Many popular libraries make it easy to retrieve the failing rule with the `schemaPath`:
-```
+
+```js
 var schemaPath = validate.errors[0].schemaPath
 var R = require('ramda')
 
@@ -160,7 +162,7 @@ console.log( 'All evaluate to the same thing: ', R.equals(
 By default is-my-json-valid bails on first validation error but when greedy is
 set to true it tries to validate as much as possible:
 
-``` js
+```js
 var validate = validator({
   type: 'object',
   properties: {
@@ -182,40 +184,40 @@ console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
 
 Here is a list of possible `message` values for errors:
 
-* `is required`
-* `is the wrong type`
-* `has additional items`
-* `must be FORMAT format` (FORMAT is the `format` property from the schema)
-* `must be unique`
-* `must be an enum value`
-* `dependencies not set`
-* `has additional properties`
-* `referenced schema does not match`
-* `negative schema matches`
-* `pattern mismatch`
-* `no schemas match`
-* `no (or more than one) schemas match`
-* `has a remainder`
-* `has more properties than allowed`
-* `has less properties than allowed`
-* `has more items than allowed`
-* `has less items than allowed`
-* `has longer length than allowed`
-* `has less length than allowed`
-* `is less than minimum`
-* `is more than maximum`
+- `is required`
+- `is the wrong type`
+- `has additional items`
+- `must be FORMAT format` (FORMAT is the `format` property from the schema)
+- `must be unique`
+- `must be an enum value`
+- `dependencies not set`
+- `has additional properties`
+- `referenced schema does not match`
+- `negative schema matches`
+- `pattern mismatch`
+- `no schemas match`
+- `no (or more than one) schemas match`
+- `has a remainder`
+- `has more properties than allowed`
+- `has less properties than allowed`
+- `has more items than allowed`
+- `has less items than allowed`
+- `has longer length than allowed`
+- `has less length than allowed`
+- `is less than minimum`
+- `is more than maximum`
 
 ## Performance
 
 is-my-json-valid uses code generation to turn your JSON schema into basic javascript code that is easily optimizeable by v8.
 
-At the time of writing, is-my-json-valid is the __fastest validator__ when running
+At the time of writing, is-my-json-valid is the **fastest validator** when running
 
-* [json-schema-benchmark](https://github.com/Muscula/json-schema-benchmark)
-* [cosmicreals.com benchmark](http://cosmicrealms.com/blog/2014/08/29/benchmark-of-node-dot-js-json-validation-modules-part-3/)
-* [jsck benchmark](https://github.com/pandastrike/jsck/issues/72#issuecomment-70992684)
-* [themis benchmark](https://cdn.rawgit.com/playlyfe/themis/master/benchmark/results.html)
-* [z-schema benchmark](https://rawgit.com/zaggino/z-schema/master/benchmark/results.html)
+- [json-schema-benchmark](https://github.com/Muscula/json-schema-benchmark)
+- [cosmicreals.com benchmark](http://cosmicrealms.com/blog/2014/08/29/benchmark-of-node-dot-js-json-validation-modules-part-3/)
+- [jsck benchmark](https://github.com/pandastrike/jsck/issues/72#issuecomment-70992684)
+- [themis benchmark](https://cdn.rawgit.com/playlyfe/themis/master/benchmark/results.html)
+- [z-schema benchmark](https://rawgit.com/zaggino/z-schema/master/benchmark/results.html)
 
 If you know any other relevant benchmarks open a PR and I'll add them.
 
