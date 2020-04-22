@@ -1,3 +1,8 @@
+// Modified by
+// @author  David Reess at Thingylabs for Bosch Engineering GmbH
+// @reason  Fix null values for ["string", "null"] types with "format"
+//          not being valid [see Lines 218 & 226]
+
 var genobj = require('generate-object-property')
 var genfun = require('generate-function')
 var jsonpointer = require('jsonpointer')
