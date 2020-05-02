@@ -5,12 +5,11 @@
   "repository": "mafintosh/is-my-json-valid",
   "files": [
     "formats.js",
-    "index.d.ts",
     "index.js",
     "require.js"
   ],
   "scripts": {
-    "test": "tape test/*.js && tsc"
+    "test": "tape test/*.js"
   },
   "dependencies": {
     "generate-function": "^2.0.0",
@@ -21,8 +20,7 @@
   },
   "devDependencies": {
     "safe-regex": "^1.1.0",
-    "tape": "^2.13.4",
-    "typescript": "^3.0.1"
+    "tape": "^2.13.4"
   },
   "keywords": [
     "json",
