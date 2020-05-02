@@ -12,6 +12,7 @@
     "test": "tape test/*.js"
   },
   "dependencies": {
+    "@exodus/generate-function": "2.3.1-exodus0",
     "generate-function": "^2.0.0",
     "generate-object-property": "^1.1.0",
     "jsonpointer": "^4.0.0",

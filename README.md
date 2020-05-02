@@ -180,6 +180,51 @@ console.log(validate.errors) // [{field: 'data.y', message: 'is required'},
                              //  {field: 'data.x', message: 'is the wrong type'}]
 ```
 
+## Generate Modules
+
+To compile a validator function to an IIFE, call `validate.toModule()`:
+
+```js
+const schema = {
+  type: 'string',
+  format: 'hex'
+}
+
+const validator = require('../is-my-json-valid')
+
+// This works with custom formats as well.
+const formats = {
+  hex: (value) => typeof value === 'string' && /^0x[0-9A-Fa-f]*$/.test(value),
+}
+
+const validate = validator(schema, { formats })
+
+console.log(validate.toModule())
+/** Prints:
+ * (function() {
+ * var format1 = (value) => typeof value === 'string' && /^0x[0-9A-Fa-f]*$/.test(value);
+ * return (function validate(data) {
+ *   if (data === undefined) data = null
+ *   validate.errors = null
+ *   var errors = 0
+ *   if (data !== undefined) {
+ *     if (!(typeof data === "string")) {
+ *       errors++
+ *       if (validate.errors === null) validate.errors = []
+ *       validate.errors.push({field:"data",message:"is the wrong type"})
+ *     } else {
+ *       if (!format1(data)) {
+ *         errors++
+ *         if (validate.errors === null) validate.errors = []
+ *         validate.errors.push({field:"data",message:"must be hex format"})
+ *       }
+ *     }
+ *   }
+ *   return errors === 0
+ * })})();
+ */
+```
+
 ## Error messages
 
 Here is a list of possible `message` values for errors:

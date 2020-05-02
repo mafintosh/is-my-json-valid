@@ -1,5 +1,5 @@
 var genobj = require('generate-object-property')
-var genfun = require('generate-function')
+var genfun = require('@exodus/generate-function')
 var jsonpointer = require('jsonpointer')
 var xtend = require('xtend')
 var formats = require('./formats')
@@ -568,7 +568,12 @@ var compile = function(schema, cache, root, reporter, opts) {
       ('return errors === 0')
     ('}')
 
-  validate = validate.toFunction(scope)
+
+  var generatedFunc = validate
+  var filteredScope = filterScope(generatedFunc.toString(), scope)
+
+  validate = generatedFunc.toFunction(filteredScope)
+  validate.toModule = () => generatedFunc.toModule(filteredScope)
   validate.errors = null
 
   if (Object.defineProperty) {
@@ -600,4 +605,15 @@ module.exports.filter = function(schema, opts) {
     validate(sch)
     return sch
   }
+}
+
+// Improve performance of generated IIFE modules by filtering unneeded scope
+function filterScope(source, scope) {
+  var filtered = {}
+  Object.keys(scope).forEach(function (key) {
+    if (source.includes(key)) {
+      filtered[key] = scope[key]
+    }
+  })
+  return filtered
 }
