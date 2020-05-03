@@ -216,10 +216,17 @@ var compile = function(schema, cache, root, reporter, opts) {
       var n = gensym('format')
       scope[n] = fmts[node.format]
 
-      if (typeof scope[n] === 'function') validate('if (!%s(%s)) {', n, name)
-      else validate('if (!%s.test(%s)) {', n, name)
-      error('must be '+node.format+' format')
-      validate('}')
+      if (scope[n] instanceof RegExp || typeof scope[n] === 'function') {
+        var condition = scope[n] instanceof RegExp
+          ? '!%s.test(%s)'
+          : '!%s(%s)'
+        validate('if ('+condition+') {', n, name)
+        error('must be '+node.format+' format')
+        validate('}')
+      } else if (typeof scope[n] === 'object') {
+        visit(name, scope[n], reporter, filter, schemaPath.concat('format'))
+      }
+
       if (type !== 'string' && formats[node.format]) validate('}')
     }
 

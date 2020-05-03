@@ -256,6 +256,40 @@ tape('custom format function', function(t) {
   t.end()
 })
 
+tape('custom format schema object', function(t) {
+  var tests = [
+    {
+      schema: { format: 'vegetable' },
+      description: 'an egglplant is a vegetable',
+      data: { oblong: true, sweet: false },
+      valid: true
+    },
+    {
+      schema: { format: 'vegetable' },
+      description: 'a strawberry is not a vegetable',
+      data: { oblong: false, sweet: true },
+      valid: false
+    }
+  ]
+
+  var formats = {
+    vegetable: {
+      type: 'object',
+      properties: {
+        oblong: { enum: [true] },
+        sweet: { enum: [false] },
+      },
+    },
+  }
+
+  tests.forEach(function(f) {
+    var validate = validator(f.schema, { formats: formats })
+    t.is(validate(f.data), f.valid, f.description)
+  })
+
+  t.end()
+})
+
 tape('do not mutate schema', function(t) {
   var sch = {
     items: [
