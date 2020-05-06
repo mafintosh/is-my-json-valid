@@ -1,85 +1,8 @@
 var util = require('util')
-var isProperty = require('is-property')
 var jaystring = require('jaystring')
 
 var INDENT_START = /[\{\[]/
 var INDENT_END = /[\}\]]/
-
-// from https://mathiasbynens.be/notes/reserved-keywords
-var RESERVED = [
-  'do',
-  'if',
-  'in',
-  'for',
-  'let',
-  'new',
-  'try',
-  'var',
-  'case',
-  'else',
-  'enum',
-  'eval',
-  'null',
-  'this',
-  'true',
-  'void',
-  'with',
-  'await',
-  'break',
-  'catch',
-  'class',
-  'const',
-  'false',
-  'super',
-  'throw',
-  'while',
-  'yield',
-  'delete',
-  'export',
-  'import',
-  'public',
-  'return',
-  'static',
-  'switch',
-  'typeof',
-  'default',
-  'extends',
-  'finally',
-  'package',
-  'private',
-  'continue',
-  'debugger',
-  'function',
-  'arguments',
-  'interface',
-  'protected',
-  'implements',
-  'instanceof',
-  'NaN',
-  'undefined'
-]
-
-var RESERVED_MAP = {}
-
-for (var i = 0; i < RESERVED.length; i++) {
-  RESERVED_MAP[RESERVED[i]] = true
-}
-
-var isVariable = function (name) {
-  return isProperty(name) && !RESERVED_MAP.hasOwnProperty(name)
-}
-
-var formats = {
-  s: function(s) {
-    return '' + s
-  },
-  d: function(d) {
-    return '' + Number(d)
-  },
-  o: function(o) {
-    return JSON.stringify(o)
-  }
-}
 
 var genfun = function() {
   var lines = []
@@ -87,9 +10,7 @@ var genfun = function() {
   var vars = {}
 
   var push = function(str) {
-    var spaces = ''
-    while (spaces.length < indent*2) spaces += '  '
-    lines.push(spaces+str)
+    lines.push(' '.repeat(indent * 2) + str)
   }
 
   var pushLine = function(line) {
@@ -128,37 +49,12 @@ var genfun = function() {
     return line
   }
 
-  line.scope = {}
-  line.formats = formats
-
-  line.sym = function(name) {
-    if (!name || !isVariable(name)) name = 'tmp'
-    if (!vars[name]) vars[name] = 0
-    return name + (vars[name]++ || '')
-  }
-
-  line.property = function(obj, name) {
-    if (arguments.length === 1) {
-      name = obj
-      obj = ''
-    }
-
-    name = name + ''
-
-    if (isProperty(name)) return (obj ? obj + '.' + name : name)
-    return obj ? obj + '[' + JSON.stringify(name) + ']' : JSON.stringify(name)
-  }
-
   line.toString = function() {
     return lines.join('\n')
   }
 
   line.toModule = function(scope) {
     if (!scope) scope = {}
-
-    Object.keys(line.scope).forEach(function (key) {
-      if (!scope[key]) scope[key] = line.scope[key]
-    })
 
     var scopeSource = Object.entries(scope)
       .map(function ([key, value]) {
@@ -173,10 +69,6 @@ var genfun = function() {
     if (!scope) scope = {}
 
     var src = 'return ('+line.toString()+')'
-
-    Object.keys(line.scope).forEach(function (key) {
-      if (!scope[key]) scope[key] = line.scope[key]
-    })
 
     var keys = Object.keys(scope).map(function(key) {
       return key
@@ -194,5 +86,4 @@ var genfun = function() {
   return line
 }
 
-genfun.formats = formats
 module.exports = genfun

@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "generate-object-property": "^1.1.0",
-    "is-property": "^1.0.2",
     "jaystring": "^1.0.2",
     "jsonpointer": "^4.0.0",
     "xtend": "^4.0.0"
