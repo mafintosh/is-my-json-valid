@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "safe-regex": "^1.1.0",
-    "tape": "^2.13.4"
+    "tape": "^4.7.0"
   },
   "keywords": [
     "json",
