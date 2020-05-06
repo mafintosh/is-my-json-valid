@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@exodus/generate-function@2.3.1-exodus0":
+  version "2.3.1-exodus0"
+  resolved "https://registry.yarnpkg.com/@exodus/generate-function/-/generate-function-2.3.1-exodus0.tgz#56c23c00ee0cc2995a5da63d4fbbcb492baa29aa"
+  integrity sha512-g7MwSRSf9N4Assx7hYq+ioauUZgZpuORYoybZsqx+StaQCSg5KzCa5CqQld4+LKSrbrj30XVtdB4yKjf2HOn1Q==
+  dependencies:
+    is-property "^1.0.2"
+    jaystring "^1.0.2"
+
 deep-equal@~0.2.0:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-0.2.2.tgz#84b745896f34c684e98f2ce0e42abaf43bba017d"
@@ -11,13 +19,6 @@ defined@~0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/defined/-/defined-0.0.0.tgz#f35eea7d705e933baf13b2f03b3f83d921403b3e"
   integrity sha1-817qfXBekzuvE7LwOz+D2SFAOz4=
-
-generate-function@^2.0.0:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/generate-function/-/generate-function-2.3.1.tgz#f069617690c10c868e73b8465746764f97c3479f"
-  integrity sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==
-  dependencies:
-    is-property "^1.0.2"
 
 generate-object-property@^1.1.0:
   version "1.2.0"
@@ -44,20 +45,15 @@ inherits@2, inherits@^2.0.1:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-is-my-ip-valid@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/is-my-ip-valid/-/is-my-ip-valid-1.0.0.tgz#7b351b8e8edd4d3995d4d066680e664d94696824"
-  integrity sha512-gmh/eWXROncUzRnIa1Ubrt5b8ep/MGSnfAUI3aRp+sqTCs1tv1Isl8d8F6JmkN3dXKc3ehZMrtiPN9eL03NuaQ==
-
 is-property@^1.0.0, is-property@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-property/-/is-property-1.0.2.tgz#57fe1c4e48474edd65b09911f26b1cd4095dda84"
   integrity sha1-V/4cTkhHTt1lsJkR8msc1Ald2oQ=
 
-js-stringify@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/js-stringify/-/js-stringify-1.0.2.tgz#1736fddfd9724f28a3682adc6230ae7e4e9679db"
-  integrity sha1-Fzb939lyTyijaCrcYjCufk6Weds=
+jaystring@^1.0.2:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/jaystring/-/jaystring-1.0.5.tgz#2d4e07ae935d6dbac9fcc279e622cc0716531176"
+  integrity sha512-XESwgvu7oqQHdRfkU/Ryjl8kKkMNrpgeS+Imx0K1CenZIw5JoS+wfXy3h1GA3LdCi2F6HTZWa5Qzn/oOG3eZ5g==
 
 jsonpointer@^4.0.0:
   version "4.0.1"
