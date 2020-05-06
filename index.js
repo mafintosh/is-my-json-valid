@@ -1,7 +1,6 @@
 var genobj = require('generate-object-property')
 var genfun = require('./generate-function')
 var jsonpointer = require('jsonpointer')
-var xtend = require('xtend')
 var formats = require('./formats')
 
 var get = function(obj, additionalSchemas, ptr) {
@@ -110,7 +109,7 @@ var isMultipleOf = function(name, multipleOf) {
 }
 
 var compile = function(schema, cache, root, reporter, opts) {
-  var fmts = opts ? xtend(formats, opts.formats) : formats
+  var fmts = opts ? Object.assign({}, formats, opts.formats) : formats
   var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
@@ -607,7 +606,7 @@ module.exports = function(schema, opts) {
 }
 
 module.exports.filter = function(schema, opts) {
-  var validate = module.exports(schema, xtend(opts, {filter: true}))
+  var validate = module.exports(schema, Object.assign({}, opts, {filter: true}))
   return function(sch) {
     validate(sch)
     return sch

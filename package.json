@@ -14,8 +14,7 @@
   "dependencies": {
     "generate-object-property": "^1.1.0",
     "jaystring": "^1.0.2",
-    "jsonpointer": "^4.0.0",
-    "xtend": "^4.0.0"
+    "jsonpointer": "^4.0.0"
   },
   "devDependencies": {
     "safe-regex": "^1.1.0",
