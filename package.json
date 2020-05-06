@@ -1,6 +1,6 @@
 {
   "name": "@exodus/is-my-json-valid",
-  "version": "2.20.0-exodus1",
+  "version": "2.20.0-exodus2",
   "license": "MIT",
   "repository": "github.com/ExodusMovement/is-my-json-valid",
   "files": [
