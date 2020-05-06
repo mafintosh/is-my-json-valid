@@ -1,5 +1,5 @@
 var genobj = require('generate-object-property')
-var genfun = require('@exodus/generate-function')
+var genfun = require('./generate-function')
 var jsonpointer = require('jsonpointer')
 var xtend = require('xtend')
 var formats = require('./formats')

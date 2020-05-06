@@ -2,14 +2,6 @@
 # yarn lockfile v1
 
 
-"@exodus/generate-function@2.3.1-exodus0":
-  version "2.3.1-exodus0"
-  resolved "https://registry.yarnpkg.com/@exodus/generate-function/-/generate-function-2.3.1-exodus0.tgz#56c23c00ee0cc2995a5da63d4fbbcb492baa29aa"
-  integrity sha512-g7MwSRSf9N4Assx7hYq+ioauUZgZpuORYoybZsqx+StaQCSg5KzCa5CqQld4+LKSrbrj30XVtdB4yKjf2HOn1Q==
-  dependencies:
-    is-property "^1.0.2"
-    jaystring "^1.0.2"
-
 deep-equal@~0.2.0:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-0.2.2.tgz#84b745896f34c684e98f2ce0e42abaf43bba017d"
