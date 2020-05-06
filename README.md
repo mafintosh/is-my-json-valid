@@ -44,13 +44,6 @@ You can also pass the schema as a string
 var validate = validator('{"type": ... }')
 ```
 
-Optionally you can use the require submodule to load a schema from `__dirname`
-
-```js
-var validator = require('is-my-json-valid/require')
-var validate = validator('my-schema.json')
-```
-
 ## Custom formats
 
 is-my-json-valid supports the formats specified in JSON schema v4 (such as date-time).
