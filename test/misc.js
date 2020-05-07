@@ -289,6 +289,14 @@ tape('custom format schema object', function(t) {
   t.end()
 })
 
+tape('unknown format throws errors', function(t) {
+  t.throws(function() {
+    validator({ type: 'string', format: 'foobar' })
+  }, /Unrecognized format used/)
+
+  t.end()
+})
+
 tape('do not mutate schema', function(t) {
   var sch = {
     items: [
