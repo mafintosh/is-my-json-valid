@@ -212,7 +212,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
     }
 
-    if (node.format && fmts[node.format]) {
+    if (node.format && fmts.hasOwnProperty(node.format)) {
       if (type !== 'string' && formats[node.format]) validate('if (%s) {', types.string(name))
       var n = gensym('format')
       scope[n] = fmts[node.format]
@@ -229,6 +229,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       }
 
       if (type !== 'string' && formats[node.format]) validate('}')
+    } else if (node.format) {
+      throw new Error('Unrecognized format used')
     }
 
     if (Array.isArray(node.required)) {
