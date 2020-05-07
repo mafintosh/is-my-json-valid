@@ -583,7 +583,9 @@ var compile = function(schema, cache, root, reporter, opts) {
   var filteredScope = filterScope(generatedFunc.toString(), scope)
 
   validate = generatedFunc.toFunction(filteredScope)
-  validate.toModule = () => generatedFunc.toModule(filteredScope)
+  validate.toModule = function() {
+    return generatedFunc.toModule(filteredScope)
+  }
   validate.errors = null
 
   if (Object.defineProperty) {
