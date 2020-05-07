@@ -37,8 +37,7 @@ exports.valid = {
     "the-total-length@of-an-entire-address.cannot-be-longer-than-two-hundred-and-fifty-four-characters.and-this-address-is-254-characters-exactly.so-it-should-be-valid.and-im-going-to-add-some-more-words-here.to-increase-the-lenght-blah-blah-blah-blah-bla.org",
     "the-character-limit@for-each-part.of-the-domain.is-sixty-three-characters.this-is-exactly-sixty-three-characters-so-it-is-valid-blah-blah.com",
     "local@sub.domains.com"
-  ],
-  ipAddresses : [ "127.0.0.1", "24.48.64.2", "192.168.1.1", "209.68.44.3", "2.2.2.2" ]
+  ]
 }
 
 exports.invalid = {
@@ -54,15 +53,14 @@ exports.invalid = {
   topThreeFavoriteColors : [ "red", 5 ],
   favoriteSingleDigitWholeNumbers : [ 78, 2, 999 ],
   favoriteFiveLetterWord : "codernaut",
-  emailAddresses : [],
-  ipAddresses : [ "999.0.099.1", "294.48.64.2346", false, "2221409.64214128.42414.235233", "124124.12412412" ]
+  emailAddresses : []
 }
 
 exports.schema = { // from cosmic thingy
     name : "test",
     type : "object",
     additionalProperties : false,
-    required : ["fullName", "age", "zip", "married", "dozen", "dozenOrBakersDozen", "favoriteEvenNumber", "topThreeFavoriteColors", "favoriteSingleDigitWholeNumbers", "favoriteFiveLetterWord", "emailAddresses", "ipAddresses"],
+    required : ["fullName", "age", "zip", "married", "dozen", "dozenOrBakersDozen", "favoriteEvenNumber", "topThreeFavoriteColors", "favoriteSingleDigitWholeNumbers", "favoriteFiveLetterWord", "emailAddresses"],
     properties :
     {
       fullName                        : { type : "string" },
@@ -78,7 +76,6 @@ exports.schema = { // from cosmic thingy
       topThreeFavoriteColors          : { type : "array", minItems : 3, maxItems : 3, uniqueItems : true, items : { type : "string" }},
       favoriteSingleDigitWholeNumbers : { type : "array", minItems : 1, maxItems : 10, uniqueItems : true, items : { type : "integer", minimum : 0, maximum : 9 }},
       favoriteFiveLetterWord          : { type : "string", minLength : 5, maxLength : 5 },
-      emailAddresses                  : { type : "array", minItems : 1, uniqueItems : true, items : { type : "string", format : "email" }},
-      ipAddresses                     : { type : "array", uniqueItems : true, items : { type : "string", format : "ipv4" }},
+      emailAddresses                  : { type : "array", minItems : 1, uniqueItems : true, items : { type : "string", format : "email" }}
     }
   }
