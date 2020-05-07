@@ -4,9 +4,9 @@
   "license": "MIT",
   "repository": "github.com/ExodusMovement/is-my-json-valid",
   "files": [
+    "generate-function.js",
     "formats.js",
-    "index.js",
-    "require.js"
+    "index.js"
   ],
   "scripts": {
     "test": "tape test/*.js"
