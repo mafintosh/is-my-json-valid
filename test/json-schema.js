@@ -6,6 +6,7 @@ var files = fs.readdirSync(__dirname+'/json-schema-draft4')
   .map(function(file) {
     if (file === 'definitions.json') return null
     if (file === 'refRemote.json') return null
+    if (file === 'ref.json') return null
     return require('./json-schema-draft4/'+file)
   })
   .filter(Boolean)

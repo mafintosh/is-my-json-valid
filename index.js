@@ -2,6 +2,7 @@ var genobj = require('generate-object-property')
 var genfun = require('./generate-function')
 var jsonpointer = require('jsonpointer')
 var formats = require('./formats')
+var KNOWN_KEYWORDS = require('./known-keywords')
 
 var get = function(obj, additionalSchemas, ptr) {
 
@@ -139,6 +140,14 @@ var compile = function(schema, cache, root, reporter, opts) {
   }
 
   var visit = function(name, node, reporter, filter, schemaPath) {
+    if (node.constructor.toString() === Object.toString()) {
+      Object.keys(node).forEach(function checkKeywordSupported(keyword) {
+        if (!KNOWN_KEYWORDS.includes(keyword)) {
+          throw new Error('Keyword not supported: ' + keyword)
+        }
+      })
+    }
+
     var properties = node.properties
     var type = node.type
     var tuple = false
