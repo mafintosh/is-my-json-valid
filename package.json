@@ -6,6 +6,7 @@
   "files": [
     "generate-function.js",
     "formats.js",
+    "known-keywords.js",
     "index.js"
   ],
   "scripts": {
