@@ -31,5 +31,5 @@ module.exports = [
   'enum',
   'uniqueItems',
   '$ref',
-  // 'default', // TODO unsupported
+  'default',
 ]

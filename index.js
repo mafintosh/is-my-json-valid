@@ -1,4 +1,5 @@
 var genobj = require('generate-object-property')
+var jaystring = require('jaystring')
 var genfun = require('./generate-function')
 var jsonpointer = require('jsonpointer')
 var formats = require('./formats')
@@ -179,6 +180,13 @@ var compile = function(schema, cache, root, reporter, opts) {
           validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
         }
       }
+    }
+
+    if (node.default !== undefined) {
+      indent++
+      validate('if (%s === undefined) {', name)
+                ('%s = %s', name, jaystring(node.default))
+              ('} else {')
     }
 
     if (node.required === true) {
