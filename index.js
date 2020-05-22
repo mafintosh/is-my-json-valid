@@ -1,11 +1,11 @@
-var genobj = require('generate-object-property')
-var jaystring = require('jaystring')
-var genfun = require('./generate-function')
-var jsonpointer = require('jsonpointer')
-var formats = require('./formats')
-var KNOWN_KEYWORDS = require('./known-keywords')
+const genobj = require('generate-object-property')
+const jaystring = require('jaystring')
+const genfun = require('./generate-function')
+const jsonpointer = require('jsonpointer')
+const formats = require('./formats')
+const KNOWN_KEYWORDS = require('./known-keywords')
 
-var get = function(obj, additionalSchemas, ptr) {
+const get = function(obj, additionalSchemas, ptr) {
   var visit = function(sub) {
     if (sub && sub.id === ptr) return sub
     if (typeof sub !== 'object' || !sub) return null
@@ -14,7 +14,7 @@ var get = function(obj, additionalSchemas, ptr) {
     }, null)
   }
 
-  var res = visit(obj)
+  const res = visit(obj)
   if (res) return res
 
   ptr = ptr.replace(/^#/, '')
@@ -23,17 +23,17 @@ var get = function(obj, additionalSchemas, ptr) {
   try {
     return jsonpointer.get(obj, decodeURI(ptr))
   } catch (err) {
-    var end = ptr.indexOf('#')
-    var other
+    const end = ptr.indexOf('#')
+    let other
     // external reference
     if (end !== 0) {
       // fragment doesn't exist.
       if (end === -1) {
         other = additionalSchemas[ptr]
       } else {
-        var ext = ptr.slice(0, end)
+        const ext = ptr.slice(0, end)
         other = additionalSchemas[ext]
-        var fragment = ptr.slice(end).replace(/^#/, '')
+        const fragment = ptr.slice(end).replace(/^#/, '')
         try {
           return jsonpointer.get(other, fragment)
         } catch (err) {}
@@ -45,7 +45,7 @@ var get = function(obj, additionalSchemas, ptr) {
   }
 }
 
-var formatName = function(field) {
+const formatName = function(field) {
   field = JSON.stringify(field)
   // Commented out code from original vanilla version because it allows a code execution
   // exploit from a maliciously crafted schema.
@@ -54,7 +54,7 @@ var formatName = function(field) {
   return field
 }
 
-var types = {}
+const types = {}
 
 types.any = function() {
   return 'true'
@@ -100,8 +100,8 @@ types.string = function(name) {
   return 'typeof ' + name + ' === "string"'
 }
 
-var unique = function(array) {
-  var list = []
+const unique = function(array) {
+  const list = []
   for (var i = 0; i < array.length; i++) {
     list.push(typeof array[i] === 'object' ? JSON.stringify(array[i]) : array[i])
   }
@@ -111,9 +111,9 @@ var unique = function(array) {
   return true
 }
 
-var isMultipleOf = function(name, multipleOf) {
-  var res
-  var factor =
+const isMultipleOf = function(name, multipleOf) {
+  let res
+  const factor =
     (multipleOf | 0) !== multipleOf
       ? Math.pow(
           10,
@@ -124,7 +124,7 @@ var isMultipleOf = function(name, multipleOf) {
         )
       : 1
   if (factor > 1) {
-    var factorName =
+    const factorName =
       (name | 0) !== name
         ? Math.pow(
             10,
@@ -141,28 +141,28 @@ var isMultipleOf = function(name, multipleOf) {
 }
 
 var compile = function(schema, cache, root, reporter, opts) {
-  var fmts = opts ? Object.assign({}, formats, opts.formats) : formats
-  var scope = { unique: unique, formats: fmts, isMultipleOf: isMultipleOf }
-  var verbose = opts ? !!opts.verbose : false
-  var greedy = opts && opts.greedy !== undefined ? opts.greedy : false
+  const fmts = opts ? Object.assign({}, formats, opts.formats) : formats
+  const scope = { unique: unique, formats: fmts, isMultipleOf: isMultipleOf }
+  const verbose = opts ? !!opts.verbose : false
+  const greedy = opts && opts.greedy !== undefined ? opts.greedy : false
 
-  var syms = {}
-  var gensym = function(name) {
+  const syms = {}
+  const gensym = function(name) {
     return name + (syms[name] = (syms[name] || 0) + 1)
   }
 
-  var reversePatterns = {}
-  var patterns = function(p) {
+  const reversePatterns = {}
+  const patterns = function(p) {
     if (reversePatterns[p]) return reversePatterns[p]
-    var n = gensym('pattern')
+    const n = gensym('pattern')
     scope[n] = new RegExp(p)
     reversePatterns[p] = n
     return n
   }
 
-  var vars = ['i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z']
-  var genloop = function() {
-    var v = vars.shift()
+  const vars = ['i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z']
+  const genloop = function() {
+    const v = vars.shift()
     vars.push(v + v[0])
     return v
   }
@@ -176,9 +176,9 @@ var compile = function(schema, cache, root, reporter, opts) {
       })
     }
 
-    var properties = node.properties
-    var type = node.type
-    var tuple = false
+    let properties = node.properties
+    let type = node.type
+    let tuple = false
 
     if (Array.isArray(node.items)) {
       // tuple type
@@ -190,8 +190,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       tuple = true
     }
 
-    var indent = 0
-    var error = function(msg, prop, value) {
+    let indent = 0
+    const error = function(msg, prop, value) {
       validate('errors++')
       if (reporter === true) {
         validate('if (validate.errors === null) validate.errors = []')
@@ -231,7 +231,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('if (%s !== undefined) {', name)
     }
 
-    var valid =
+    const valid =
       []
         .concat(type)
         .map(function(t) {
@@ -275,7 +275,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       scope[n] = fmts[node.format]
 
       if (scope[n] instanceof RegExp || typeof scope[n] === 'function') {
-        var condition = scope[n] instanceof RegExp ? '!%s.test(%s)' : '!%s(%s)'
+        const condition = scope[n] instanceof RegExp ? '!%s.test(%s)' : '!%s(%s)'
         validate('if (' + condition + ') {', n, name)
         error('must be ' + node.format + ' format')
         validate('}')
@@ -289,8 +289,8 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (Array.isArray(node.required)) {
-      var checkRequired = function(req) {
-        var prop = genobj(name, req)
+      const checkRequired = function(req) {
+        const prop = genobj(name, req)
         validate('if (%s === undefined) {', prop)
         error('is required', prop)
         validate('missing++')
@@ -315,11 +315,11 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.enum) {
-      var complex = node.enum.some(function(e) {
+      const complex = node.enum.some(function(e) {
         return typeof e === 'object'
       })
 
-      var compare = complex
+      const compare = complex
         ? function(e) {
             return 'JSON.stringify(' + name + ')' + ' !== JSON.stringify(' + JSON.stringify(e) + ')'
           }
@@ -336,10 +336,10 @@ var compile = function(schema, cache, root, reporter, opts) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
 
       Object.keys(node.dependencies).forEach(function(key) {
-        var deps = node.dependencies[key]
+        let deps = node.dependencies[key]
         if (typeof deps === 'string') deps = [deps]
 
-        var exists = function(k) {
+        const exists = function(k) {
           return genobj(name, k) + ' !== undefined'
         }
 
@@ -368,15 +368,15 @@ var compile = function(schema, cache, root, reporter, opts) {
       var i = genloop()
       var keys = gensym('keys')
 
-      var toCompare = function(p) {
+      const toCompare = function(p) {
         return keys + '[' + i + '] !== ' + JSON.stringify(p)
       }
 
-      var toTest = function(p) {
+      const toTest = function(p) {
         return '!' + patterns(p) + '.test(' + keys + '[' + i + '])'
       }
 
-      var additionalProp =
+      const additionalProp =
         Object.keys(properties || {})
           .map(toCompare)
           .concat(Object.keys(node.patternProperties || {}).map(toTest))
@@ -413,9 +413,9 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.$ref) {
-      var sub = get(root, (opts && opts.schemas) || {}, node.$ref)
+      const sub = get(root, (opts && opts.schemas) || {}, node.$ref)
       if (sub) {
-        var fn = cache[node.$ref]
+        let fn = cache[node.$ref]
         if (!fn) {
           cache[node.$ref] = function proxy(data) {
             return fn(data)
@@ -463,7 +463,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       )
 
       Object.keys(node.patternProperties).forEach(function(key) {
-        var p = patterns(key)
+        const p = patterns(key)
         validate('if (%s.test(%s)) {', p, keys + '[' + i + ']')
         visit(
           name + '[' + keys + '[' + i + ']]',
@@ -480,7 +480,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.pattern) {
-      var p = patterns(node.pattern)
+      const p = patterns(node.pattern)
       if (type !== 'string') validate('if (%s) {', types.string(name))
       validate('if (!(%s.test(%s))) {', p, name)
       error('pattern mismatch')
@@ -515,7 +515,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.oneOf && node.oneOf.length) {
       var prev = gensym('prev')
-      var passes = gensym('passes')
+      const passes = gensym('passes')
 
       validate('var %s = errors', prev)('var %s = 0', passes)
 
@@ -648,8 +648,8 @@ var compile = function(schema, cache, root, reporter, opts) {
 
   validate('return errors === 0')('}')
 
-  var generatedFunc = validate
-  var filteredScope = filterScope(generatedFunc.toString(), scope)
+  const generatedFunc = validate
+  const filteredScope = filterScope(generatedFunc.toString(), scope)
 
   validate = generatedFunc.toFunction(filteredScope)
   validate.toModule = function() {
@@ -683,7 +683,7 @@ module.exports = function(schema, opts) {
 }
 
 module.exports.filter = function(schema, opts) {
-  var validate = module.exports(schema, Object.assign({}, opts, { filter: true }))
+  const validate = module.exports(schema, Object.assign({}, opts, { filter: true }))
   return function(sch) {
     validate(sch)
     return sch
@@ -692,7 +692,7 @@ module.exports.filter = function(schema, opts) {
 
 // Improve performance of generated IIFE modules by filtering unneeded scope
 function filterScope(source, scope) {
-  var filtered = {}
+  const filtered = {}
   Object.keys(scope).forEach(function(key) {
     if (source.includes(key)) {
       filtered[key] = scope[key]

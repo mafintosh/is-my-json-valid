@@ -1,6 +1,6 @@
-var tape = require('tape')
-var validator = require('../')
-var get = require('jsonpointer').get;
+const tape = require('tape')
+const validator = require('../')
+const get = require('jsonpointer').get;
 
 function toPointer( path ) {
   if ( ! ( path && path.length && path.join ) ){
@@ -14,7 +14,7 @@ function lookup(schema, err){
 }
 
 tape('schemaPath', function(t) {
-  var schema = {
+  const schema = {
     type: 'object',
     target: 'top level',
     properties: {
@@ -94,7 +94,7 @@ tape('schemaPath', function(t) {
     },
     additionalProperties: false
   }
-  var validate = validator(schema, { verbose: true, greedy: true } );
+  const validate = validator(schema, { verbose: true, greedy: true } );
 
   function notOkAt(data, path, message) {
     if(validate(data)) {
@@ -147,7 +147,7 @@ tape('schemaPath', function(t) {
 })
 
 tape('schemaPath - nested selectors', function(t) {
-  var schema = {
+  const schema = {
     anyOf: [
       { oneOf:[
         { allOf: [
@@ -160,7 +160,7 @@ tape('schemaPath - nested selectors', function(t) {
       ]}
     ]
   }
-  var validate = validator(schema, { verbose: true, greedy: true } );
+  const validate = validator(schema, { verbose: true, greedy: true } );
   t.notOk(validate({nestedSelectors: "nope"}), 'should not crash on visit inside *Of');
 
   t.end()

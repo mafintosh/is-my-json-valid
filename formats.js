@@ -7,9 +7,9 @@ exports['color'] = /(#?([0-9A-Fa-f]{3,6})\b)|(aqua)|(black)|(blue)|(fuchsia)|(gr
 exports['hostname'] = function (input) {
   if (!(/^[a-zA-Z0-9.-]+$/.test(input))) return false
 
-  var parts = input.split('.')
+  const parts = input.split('.')
 
-  for (var i = 0; i < parts.length; i++) {
+  for (let i = 0; i < parts.length; i++) {
     if (!(/^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$/.test(parts[i]))) return false
   }
 
@@ -22,7 +22,7 @@ exports['phone'] = function (input) {
   if (!(/^\+[0-9][0-9 ]{5,27}[0-9]$/.test(input))) return false
   if (/ {2}/.test(input)) return false
 
-  var digits = input.substring(1).replace(/ /g, '').length
+  const digits = input.substring(1).replace(/ /g, '').length
 
   return (digits >= 7 && digits <= 15)
 }

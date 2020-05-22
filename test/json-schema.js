@@ -1,8 +1,8 @@
-var tape = require('tape')
-var fs = require('fs')
-var validator = require('../')
+const tape = require('tape')
+const fs = require('fs')
+const validator = require('../')
 
-var files = fs.readdirSync(__dirname+'/json-schema-draft4')
+const files = fs.readdirSync(__dirname+'/json-schema-draft4')
   .map(function(file) {
     if (file === 'definitions.json') return null
     if (file === 'refRemote.json') return null
@@ -14,7 +14,7 @@ var files = fs.readdirSync(__dirname+'/json-schema-draft4')
 files.forEach(function(file) {
   file.forEach(function(f) {
     tape('json-schema-test-suite '+f.description, function(t) {
-      var validate = validator(f.schema)
+      const validate = validator(f.schema)
       f.tests.forEach(function(test) {
         t.same(validate(test.data), test.valid, test.description)
       })

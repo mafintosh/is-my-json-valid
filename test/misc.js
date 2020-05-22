@@ -1,9 +1,9 @@
-var tape = require('tape')
-var cosmic = require('./fixtures/cosmic')
-var validator = require('../')
+const tape = require('tape')
+const cosmic = require('./fixtures/cosmic')
+const validator = require('../')
 
 tape('simple', function(t) {
-  var schema = {
+  const schema = {
     required: true,
     type: 'object',
     properties: {
@@ -11,7 +11,7 @@ tape('simple', function(t) {
     }
   }
 
-  var validate = validator(schema)
+  const validate = validator(schema)
 
   t.ok(validate({hello: 'world'}), 'should be valid')
   t.notOk(validate(), 'should be invalid')
@@ -20,7 +20,7 @@ tape('simple', function(t) {
 })
 
 tape('data is undefined', function (t) {
-  var validate = validator({type: 'string'})
+  const validate = validator({type: 'string'})
 
   t.notOk(validate(null))
   t.notOk(validate(undefined))
@@ -28,7 +28,7 @@ tape('data is undefined', function (t) {
 })
 
 tape('advanced', function(t) {
-  var validate = validator(cosmic.schema)
+  const validate = validator(cosmic.schema)
 
   t.ok(validate(cosmic.valid), 'should be valid')
   t.notOk(validate(cosmic.invalid), 'should be invalid')
@@ -36,7 +36,7 @@ tape('advanced', function(t) {
 })
 
 tape('greedy/false', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       x: {
@@ -63,7 +63,7 @@ tape('greedy/false', function(t) {
 });
 
 tape('greedy/true', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       x: {
@@ -95,7 +95,7 @@ tape('greedy/true', function(t) {
 });
 
 tape('additional props', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     additionalProperties: false
   }, {
@@ -110,7 +110,7 @@ tape('additional props', function(t) {
 })
 
 tape('array', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'array',
     required: true,
     items: {
@@ -125,7 +125,7 @@ tape('array', function(t) {
 })
 
 tape('nested array', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       list: {
@@ -145,7 +145,7 @@ tape('nested array', function(t) {
 })
 
 tape('enum', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       foo: {
@@ -163,7 +163,7 @@ tape('enum', function(t) {
 })
 
 tape('minimum/maximum', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       foo: {
@@ -181,7 +181,7 @@ tape('minimum/maximum', function(t) {
 })
 
 tape('exclusiveMinimum/exclusiveMaximum', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       foo: {
@@ -202,7 +202,7 @@ tape('exclusiveMinimum/exclusiveMaximum', function(t) {
 })
 
 tape('minimum/maximum number type', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: ['integer', 'null'],
     minimum: 1,
     maximum: 100
@@ -218,7 +218,7 @@ tape('minimum/maximum number type', function(t) {
 })
 
 tape('custom format', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       foo: {
@@ -237,7 +237,7 @@ tape('custom format', function(t) {
 })
 
 tape('custom format function', function(t) {
-  var validate = validator({
+  const validate = validator({
     type: 'object',
     properties: {
       foo: {
@@ -256,7 +256,7 @@ tape('custom format function', function(t) {
 })
 
 tape('custom format schema object', function(t) {
-  var tests = [
+  const tests = [
     {
       schema: { format: 'vegetable' },
       description: 'an egglplant is a vegetable',
@@ -271,7 +271,7 @@ tape('custom format schema object', function(t) {
     }
   ]
 
-  var formats = {
+  const formats = {
     vegetable: {
       type: 'object',
       properties: {
@@ -282,7 +282,7 @@ tape('custom format schema object', function(t) {
   }
 
   tests.forEach(function(f) {
-    var validate = validator(f.schema, { formats: formats })
+    const validate = validator(f.schema, { formats: formats })
     t.is(validate(f.data), f.valid, f.description)
   })
 
@@ -298,7 +298,7 @@ tape('unknown format throws errors', function(t) {
 })
 
 tape('do not mutate schema', function(t) {
-  var sch = {
+  const sch = {
     items: [
       {}
     ],
@@ -307,7 +307,7 @@ tape('do not mutate schema', function(t) {
     }
   }
 
-  var copy = JSON.parse(JSON.stringify(sch))
+  const copy = JSON.parse(JSON.stringify(sch))
 
   validator(sch)
 
@@ -316,7 +316,7 @@ tape('do not mutate schema', function(t) {
 })
 
 tape('#toJSON()', function(t) {
-  var schema = {
+  const schema = {
     required: true,
     type: 'object',
     properties: {
@@ -324,20 +324,20 @@ tape('#toJSON()', function(t) {
     }
   }
 
-  var validate = validator(schema)
+  const validate = validator(schema)
 
   t.deepEqual(validate.toJSON(), schema, 'should return original schema')
   t.end()
 })
 
 tape('external schemas', function(t) {
-  var ext = {type: 'string'}
-  var schema = {
+  const ext = {type: 'string'}
+  const schema = {
     required: true,
     $ref: '#ext'
   }
 
-  var validate = validator(schema, {schemas: {ext:ext}})
+  const validate = validator(schema, {schemas: {ext:ext}})
 
   t.ok(validate('hello string'), 'is a string')
   t.notOk(validate(42), 'not a string')
@@ -345,15 +345,15 @@ tape('external schemas', function(t) {
 })
 
 tape('external schema URIs', function(t) {
-  var ext = {type: 'string'}
-  var schema = {
+  const ext = {type: 'string'}
+  const schema = {
     required: true,
     $ref: 'http://example.com/schemas/schemaURIs'
   }
 
-  var opts = {schemas:{}};
+  const opts = {schemas:{}};
   opts.schemas['http://example.com/schemas/schemaURIs'] = ext;
-  var validate = validator(schema, opts)
+  const validate = validator(schema, opts)
 
   t.ok(validate('hello string'), 'is a string')
   t.notOk(validate(42), 'not a string')
@@ -361,7 +361,7 @@ tape('external schema URIs', function(t) {
 })
 
 tape('top-level external schema', function(t) {
-  var defs = {
+  const defs = {
     "string": {
       type: "string"
     },
@@ -370,7 +370,7 @@ tape('top-level external schema', function(t) {
       enum: ["male", "female", "other"]
     }
   }
-  var schema = {
+  const schema = {
     type: "object",
     properties: {
       "name": { $ref: "definitions.json#/string" },
@@ -379,7 +379,7 @@ tape('top-level external schema', function(t) {
     required: ["name", "sex"]
   }
 
-  var validate = validator(schema, {
+  const validate = validator(schema, {
     schemas: {
       "definitions.json": defs
     }
@@ -391,7 +391,7 @@ tape('top-level external schema', function(t) {
 })
 
 tape('nested required array decl', function(t) {
-  var schema = {
+  const schema = {
     properties: {
       x: {
         type: 'object',
@@ -411,7 +411,7 @@ tape('nested required array decl', function(t) {
     required: ['x']
   }
 
-  var validate = validator(schema)
+  const validate = validator(schema)
 
   t.ok(validate({x: {}}), 'should be valid')
   t.notOk(validate({}), 'should not be valid')
@@ -420,7 +420,7 @@ tape('nested required array decl', function(t) {
 })
 
 tape('verbose mode', function(t) {
-  var schema = {
+  const schema = {
     required: true,
     type: 'object',
     properties: {
@@ -431,7 +431,7 @@ tape('verbose mode', function(t) {
     }
   };
 
-  var validate = validator(schema, {verbose: true})
+  const validate = validator(schema, {verbose: true})
 
   t.ok(validate({hello: 'string'}), 'should be valid')
   t.notOk(validate({hello: 100}), 'should not be valid')
@@ -441,7 +441,7 @@ tape('verbose mode', function(t) {
 })
 
 tape('additional props in verbose mode', function(t) {
-  var schema = {
+  const schema = {
     type: 'object',
     required: true,
     additionalProperties: false,
@@ -462,7 +462,7 @@ tape('additional props in verbose mode', function(t) {
     }
   };
 
-  var validate = validator(schema, {verbose: true})
+  const validate = validator(schema, {verbose: true})
 
   validate({'hello world': {bar: 'string'}});
 
@@ -471,8 +471,8 @@ tape('additional props in verbose mode', function(t) {
 })
 
 tape('Date.now() is an integer', function(t) {
-  var schema = {type: 'integer'}
-  var validate = validator(schema)
+  const schema = {type: 'integer'}
+  const validate = validator(schema)
 
   t.ok(validate(Date.now()), 'is integer')
   t.end()
@@ -480,7 +480,7 @@ tape('Date.now() is an integer', function(t) {
 
 // Due to altered (safer) formatName function, this does not work
 tape.skip('field shows item index in arrays', function(t) {
-  var schema = {
+  const schema = {
     type: 'array',
     items: {
       type: 'array',
@@ -495,7 +495,7 @@ tape.skip('field shows item index in arrays', function(t) {
     }
   }
 
-  var validate = validator(schema)
+  const validate = validator(schema)
 
   validate([
     [

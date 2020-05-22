@@ -1,6 +1,6 @@
-var validator = require('./')
+const validator = require('./')
 
-var validate = validator({
+const validate = validator({
   type: 'object',
   properties: {
     hello: {
