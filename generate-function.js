@@ -14,13 +14,13 @@ var genfun = function() {
   }
 
   var pushLine = function(line) {
-    if (INDENT_END.test(line.trim()[0]) && INDENT_START.test(line[line.length-1])) {
+    if (INDENT_END.test(line.trim()[0]) && INDENT_START.test(line[line.length - 1])) {
       indent--
       push(line)
       indent++
       return
     }
-    if (INDENT_START.test(line[line.length-1])) {
+    if (INDENT_START.test(line[line.length - 1])) {
       push(line)
       indent++
       return
@@ -57,7 +57,7 @@ var genfun = function() {
     if (!scope) scope = {}
 
     var scopeSource = Object.entries(scope)
-      .map(function ([key, value]) {
+      .map(function([key, value]) {
         return `var ${key} = ${jaystring(value)};`
       })
       .join('\n')
@@ -68,7 +68,7 @@ var genfun = function() {
   line.toFunction = function(scope) {
     if (!scope) scope = {}
 
-    var src = 'return ('+line.toString()+')'
+    var src = 'return (' + line.toString() + ')'
 
     var keys = Object.keys(scope).map(function(key) {
       return key
