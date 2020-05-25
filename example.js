@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const validator = require('./')
 
 const validate = validator({

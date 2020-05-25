@@ -1,13 +1,14 @@
 const tape = require('tape')
 const fs = require('fs')
+const path = require('path')
 const validator = require('../')
 
-const files = fs.readdirSync(__dirname+'/json-schema-draft4')
+const files = fs.readdirSync(path.join(__dirname, '/json-schema-draft4'))
   .map(function(file) {
     if (file === 'definitions.json') return null
     if (file === 'refRemote.json') return null
     if (file === 'ref.json') return null
-    return require('./json-schema-draft4/'+file)
+    return require(path.join('./json-schema-draft4', file))
   })
   .filter(Boolean)
 

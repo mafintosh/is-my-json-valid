@@ -1,13 +1,12 @@
 const util = require('util')
 const jaystring = require('jaystring')
 
-const INDENT_START = /[\{\[]/
-const INDENT_END = /[\}\]]/
+const INDENT_START = /[{[]/
+const INDENT_END = /[}\]]/
 
 const genfun = function() {
   const lines = []
   let indent = 0
-  const vars = {}
 
   const push = function(str) {
     lines.push(' '.repeat(indent * 2) + str)
@@ -34,7 +33,7 @@ const genfun = function() {
     push(line)
   }
 
-  var line = function(fmt) {
+  const line = function(fmt) {
     if (!fmt) return line
 
     if (arguments.length === 1 && fmt.indexOf('\n') > -1) {

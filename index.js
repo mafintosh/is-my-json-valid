@@ -6,7 +6,7 @@ const formats = require('./formats')
 const KNOWN_KEYWORDS = require('./known-keywords')
 
 const get = function(obj, additionalSchemas, ptr) {
-  var visit = function(sub) {
+  const visit = function(sub) {
     if (sub && sub.id === ptr) return sub
     if (typeof sub !== 'object' || !sub) return null
     return Object.keys(sub).reduce(function(res, k) {
@@ -36,7 +36,9 @@ const get = function(obj, additionalSchemas, ptr) {
         const fragment = ptr.slice(end).replace(/^#/, '')
         try {
           return jsonpointer.get(other, fragment)
-        } catch (err) {}
+        } catch (err) {
+          // do nothing
+        }
       }
     } else {
       other = additionalSchemas[ptr]
@@ -102,10 +104,10 @@ types.string = function(name) {
 
 const unique = function(array) {
   const list = []
-  for (var i = 0; i < array.length; i++) {
+  for (let i = 0; i < array.length; i++) {
     list.push(typeof array[i] === 'object' ? JSON.stringify(array[i]) : array[i])
   }
-  for (var i = 1; i < list.length; i++) {
+  for (let i = 1; i < list.length; i++) {
     if (list.indexOf(list[i]) !== i) return false
   }
   return true
@@ -140,7 +142,7 @@ const isMultipleOf = function(name, multipleOf) {
   return !res
 }
 
-var compile = function(schema, cache, root, reporter, opts) {
+const compile = function(schema, cache, root, reporter, opts) {
   const fmts = opts ? Object.assign({}, formats, opts.formats) : formats
   const scope = { unique: unique, formats: fmts, isMultipleOf: isMultipleOf }
   const verbose = opts ? !!opts.verbose : false
@@ -167,7 +169,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     return v
   }
 
-  var visit = function(name, node, reporter, filter, schemaPath) {
+  const visit = function(name, node, reporter, filter, schemaPath) {
     if (node.constructor.toString() === Object.toString()) {
       Object.keys(node).forEach(function checkKeywordSupported(keyword) {
         if (!KNOWN_KEYWORDS.includes(keyword)) {
@@ -256,7 +258,7 @@ var compile = function(schema, cache, root, reporter, opts) {
         error('has additional items')
         validate('}')
       } else if (node.additionalItems) {
-        var i = genloop()
+        const i = genloop()
         validate('for (var %s = %d; %s < %s.length; %s++) {', i, node.items.length, i, name, i)
         visit(
           name + '[' + i + ']',
@@ -271,7 +273,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.format && fmts.hasOwnProperty(node.format)) {
       if (type !== 'string' && formats[node.format]) validate('if (%s) {', types.string(name))
-      var n = gensym('format')
+      const n = gensym('format')
       scope[n] = fmts[node.format]
 
       if (scope[n] instanceof RegExp || typeof scope[n] === 'function') {
@@ -365,8 +367,8 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.additionalProperties || node.additionalProperties === false) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
 
-      var i = genloop()
-      var keys = gensym('keys')
+      const i = genloop()
+      const keys = gensym('keys')
 
       const toCompare = function(p) {
         return keys + '[' + i + '] !== ' + JSON.stringify(p)
@@ -422,7 +424,7 @@ var compile = function(schema, cache, root, reporter, opts) {
           }
           fn = compile(sub, cache, root, false, opts)
         }
-        var n = gensym('ref')
+        const n = gensym('ref')
         scope[n] = fn
         validate('if (!(%s(%s))) {', n, name)
         error('referenced schema does not match')
@@ -431,7 +433,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.not) {
-      var prev = gensym('prev')
+      const prev = gensym('prev')
       validate('var %s = errors', prev)
       visit(name, node.not, false, filter, schemaPath.concat('not'))
       validate('if (%s === errors) {', prev)
@@ -442,7 +444,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.items && !tuple) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
 
-      var i = genloop()
+      const i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
       visit(name + '[' + i + ']', node.items, reporter, filter, schemaPath.concat('items'))
       validate('}')
@@ -452,8 +454,8 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.patternProperties) {
       if (type !== 'object') validate('if (%s) {', types.object(name))
-      var keys = gensym('keys')
-      var i = genloop()
+      const keys = gensym('keys')
+      const i = genloop()
       validate('var %s = Object.keys(%s)', keys, name)(
         'for (var %s = 0; %s < %s.length; %s++) {',
         i,
@@ -495,7 +497,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.anyOf && node.anyOf.length) {
-      var prev = gensym('prev')
+      const prev = gensym('prev')
 
       node.anyOf.forEach(function(sch, i) {
         if (i === 0) {
@@ -514,7 +516,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (node.oneOf && node.oneOf.length) {
-      var prev = gensym('prev')
+      const prev = gensym('prev')
       const passes = gensym('passes')
 
       validate('var %s = errors', prev)('var %s = 0', passes)
@@ -639,7 +641,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     while (indent--) validate('}')
   }
 
-  var validate = genfun('function validate(data) {')(
+  let validate = genfun('function validate(data) {')(
     // Since undefined is not a valid JSON value, we coerce to null and other checks will catch this
     'if (data === undefined) data = null'
   )('validate.errors = null')('var errors = 0')

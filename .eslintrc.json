@@ -1,0 +1,16 @@
+{
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "standard",
+    "prettier",
+    "prettier/standard"
+  ],
+  "rules": {
+    "prefer-const": 2,
+    "no-var": 2
+  }
+}
