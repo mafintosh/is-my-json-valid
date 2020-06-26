@@ -86,9 +86,10 @@ types.string = function(name) {
   return 'typeof '+name+' === "string"'
 }
 
-var unique = function(array) {
+var unique = function(array, len) {
+  len = Math.min(len === -1 ? array.length : len, array.length)
   var list = []
-  for (var i = 0; i < array.length; i++) {
+  for (var i = 0; i < len; i++) {
     list.push(typeof array[i] === 'object' ? JSON.stringify(array[i]) : array[i])
   }
   for (var i = 1; i < list.length; i++) {
@@ -243,7 +244,7 @@ var compile = function(schema, cache, root, reporter, opts) {
 
     if (node.uniqueItems) {
       if (type !== 'array') validate('if (%s) {', types.array(name))
-      validate('if (!(unique(%s))) {', name)
+      validate('if (!(unique(%s, %d))) {', name, node.maxItems || -1)
       error('must be unique')
       validate('}')
       if (type !== 'array') validate('}')
