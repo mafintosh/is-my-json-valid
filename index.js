@@ -110,9 +110,14 @@ var isMultipleOf = function(name, multipleOf) {
   return !res;
 }
 
+var testLimitedRegex = function (r, s, maxLength) {
+  if (maxLength > -1 && s.length > maxLength) return true
+  return r.test(s)
+}
+
 var compile = function(schema, cache, root, reporter, opts) {
   var fmts = opts ? xtend(formats, opts.formats) : formats
-  var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf}
+  var scope = {unique:unique, formats:fmts, isMultipleOf:isMultipleOf, testLimitedRegex:testLimitedRegex}
   var verbose = opts ? !!opts.verbose : false;
   var greedy = opts && opts.greedy !== undefined ?
     opts.greedy : false;
@@ -218,7 +223,7 @@ var compile = function(schema, cache, root, reporter, opts) {
       scope[n] = fmts[node.format]
 
       if (typeof scope[n] === 'function') validate('if (!%s(%s)) {', n, name)
-      else validate('if (!%s.test(%s)) {', n, name)
+      else validate('if (!testLimitedRegex(%s, %s, %d)) {', n, name, typeof node.maxLength === 'undefined' ? -1 : node.maxLength)
       error('must be '+node.format+' format')
       validate('}')
       if (type !== 'string' && formats[node.format]) validate('}')
@@ -392,7 +397,7 @@ var compile = function(schema, cache, root, reporter, opts) {
     if (node.pattern) {
       var p = patterns(node.pattern)
       if (type !== 'string') validate('if (%s) {', types.string(name))
-      validate('if (!(%s.test(%s))) {', p, name)
+      validate('if (!(testLimitedRegex(%s, %s, %d))) {', p, name, typeof node.maxLength === 'undefined' ? -1 : node.maxLength)
       error('pattern mismatch')
       validate('}')
       if (type !== 'string') validate('}')
