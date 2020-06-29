@@ -28,7 +28,7 @@ exports['hostname'] = function (input) {
 }
 exports['alpha'] = /^[a-zA-Z]+$/
 exports['alphanumeric'] = /^[a-zA-Z0-9]+$/
-exports['style'] = /\s*(.+?):\s*([^;]+);?/g
+exports['style'] = /.:\s*[^;]/g
 exports['phone'] = function (input) {
   if (!(rePhoneFirstPass.test(input))) return false
   if (rePhoneDoubleSpace.test(input)) return false
