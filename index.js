@@ -45,13 +45,6 @@ var get = function(obj, additionalSchemas, ptr) {
   }
 }
 
-var formatName = function(field) {
-  field = JSON.stringify(field)
-  var pattern = /\[([^\[\]"]+)\]/
-  while (pattern.test(field)) field = field.replace(pattern, '."+$1+"')
-  return field
-}
-
 var types = {}
 
 types.any = function() {
@@ -123,8 +116,27 @@ var compile = function(schema, cache, root, reporter, opts) {
     opts.greedy : false;
 
   var syms = {}
+  var allocated = []
   var gensym = function(name) {
-    return name+(syms[name] = (syms[name] || 0)+1)
+    var res = name+(syms[name] = (syms[name] || 0)+1)
+    allocated.push(res)
+    return res
+  }
+
+  var formatName = function(field) {
+    var s = JSON.stringify(field)
+    try {
+      var pattern = /\[([^\[\]"]+)\]/
+      while (pattern.test(s)) s = s.replace(pattern, replacer)
+      return s
+    } catch (_) {
+      return JSON.stringify(field)
+    }
+
+    function replacer (match, v) {
+      if (allocated.indexOf(v) === -1) throw new Error('Unreplaceable')
+      return '." + ' + v + ' + "'
+    }
   }
 
   var reversePatterns = {}
@@ -140,6 +152,7 @@ var compile = function(schema, cache, root, reporter, opts) {
   var genloop = function() {
     var v = vars.shift()
     vars.push(v+v[0])
+    allocated.push(v)
     return v
   }
 
