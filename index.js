@@ -243,19 +243,20 @@ var compile = function(schema, cache, root, reporter, opts) {
     }
 
     if (Array.isArray(node.required)) {
+      var n = gensym('missing')
+      validate('var %s = 0', n)
       var checkRequired = function (req) {
         var prop = genobj(name, req);
         validate('if (%s === undefined) {', prop)
         error('is required', prop)
-        validate('missing++')
+        validate('%s++', n)
         validate('}')
       }
       validate('if ((%s)) {', type !== 'object' ? types.object(name) : 'true')
-      validate('var missing = 0')
       node.required.map(checkRequired)
       validate('}');
       if (!greedy) {
-        validate('if (missing === 0) {')
+        validate('if (%s === 0) {', n)
         indent++
       }
     }
