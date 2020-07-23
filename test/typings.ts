@@ -1,5 +1,10 @@
 import createValidator = require('../')
 
+const foo1: createValidator.Schema = { type: 'number' }
+const foo2: createValidator.Schema = { type: 'array', items: { type: 'number' } }
+const foo3: createValidator.Schema = { type: 'object', properties: { a: { type: 'number' } } }
+const foo4: createValidator.Schema = { oneOf: [{ type: 'number' }, { type: 'string' }] }
+
 /** Static assertion that `value` has type `T` */
 // Disable tslint here b/c the generic is used to let us do a type coercion and
 // validate that coercion works for the type value "passed into" the function.

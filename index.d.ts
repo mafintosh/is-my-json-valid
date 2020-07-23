@@ -124,4 +124,8 @@ interface Factory {
 
 declare const factory: Factory
 
+declare namespace factory {
+  export type Schema = AnySchema
+}
+
 export = factory
