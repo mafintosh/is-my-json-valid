@@ -469,3 +469,16 @@ tape('field shows item index in arrays', function(t) {
   t.strictEqual(validate.errors[0].field, 'data.1.1.foo', 'should output the field with specific index of failing item in the error')
   t.end()
 })
+
+tape('Extend types', function(t) {
+  var schema = { type: 'file' }
+  var validate = validator(schema, {
+      types: {
+          file: function (filename) {
+              return 'typeof '+filename+' === "string"';
+          }
+      }
+  });
+  t.ok(validate('somefile.text'), 'is file')
+  t.end()
+})
