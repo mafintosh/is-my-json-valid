@@ -28,6 +28,19 @@ tape('data is undefined', function (t) {
   t.end()
 })
 
+tape('array item is undefined', function (t) {
+  var validate = validator({type: 'array', minItems: 1, items: { type: 'string' } })
+
+  t.ok(validate(['a']))
+  t.notOk(validate([null]), 'null should not be consider a string array item')
+  t.notOk(validate([{}]), 'object should not be consider a string array item')
+
+  var arr = [undefined]
+  t.notOk(validate(arr), 'undefined should not be consider a string array item')
+  t.ok(arr[0] === undefined, 'array should not be mutated')
+  t.end()
+})
+
 tape('advanced', function(t) {
   var validate = validator(cosmic.schema)
 
