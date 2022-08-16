@@ -93,9 +93,9 @@ var unique = function(array, len) {
 
 var isMultipleOf = function(name, multipleOf) {
   var res;
-  var factor = ((multipleOf | 0) !== multipleOf) ? Math.pow(10, multipleOf.toString().split('.').pop().length) : 1
+  var factor = Number.isInteger(multipleOf) ? 1 :  Math.pow(10,  multipleOf.toString().split('.').pop().length)
   if (factor > 1) {
-    var factorName = ((name | 0) !== name) ? Math.pow(10, name.toString().split('.').pop().length) : 1
+    var factorName = Number.isInteger(name) ? 1 : Math.pow(10, name.toString().split('.').pop().length)
     if (factorName > factor) res = true
     else res = Math.round(factor * name) % (factor * multipleOf)
   }

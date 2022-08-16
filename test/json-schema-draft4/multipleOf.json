@@ -92,5 +92,26 @@
                 "valid": false
             }
         ]
+    },
+    {
+        "description": "by big number",
+        "schema": {"multipleOf": 0.01},
+        "tests": [
+            {
+                "description": "1658529657949 is multiple of 0.01",
+                "data": 1658529657949,
+                "valid": true
+            },
+            {
+                "description": "1658529657949.05 is multiple of 0.01",
+                "data": 1658529657949.05,
+                "valid": true
+            },
+            {
+                "description": "1658529657949.055 is not multiple of 0.01",
+                "data": 1658529657949.055,
+                "valid": false
+            }
+        ]
     }
 ]
