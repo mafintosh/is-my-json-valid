@@ -86,19 +86,34 @@
         },
         "tests": [
             {
-                "description": "slash",
+                "description": "slash invalid",
                 "data": {"slash": "aoeu"},
                 "valid": false
             },
             {
-                "description": "tilda",
+                "description": "tilda invalid",
                 "data": {"tilda": "aoeu"},
                 "valid": false
             },
             {
-                "description": "percent",
+                "description": "percent invalid",
                 "data": {"percent": "aoeu"},
                 "valid": false
+            },
+            {
+                "description": "slash valid",
+                "data": {"slash": 123},
+                "valid": true
+            },
+            {
+                "description": "tilda valid",
+                "data": {"tilda": 123},
+                "valid": true
+            },
+            {
+                "description": "percent valid",
+                "data": {"percent": 123},
+                "valid": true
             }
         ]
     },
@@ -121,6 +136,163 @@
             {
                 "description": "nested ref invalid",
                 "data": "a",
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "ref overrides any sibling keywords",
+        "schema": {
+            "definitions": {
+                "reffed": {
+                    "type": "array"
+                }
+            },
+            "properties": {
+                "foo": {
+                    "$ref": "#/definitions/reffed",
+                    "maxItems": 2
+                }
+            }
+        },
+        "tests": [
+            {
+                "description": "ref valid",
+                "data": { "foo": [] },
+                "valid": true
+            },
+            {
+                "description": "ref valid, maxItems ignored",
+                "data": { "foo": [ 1, 2, 3] },
+                "valid": true
+            },
+            {
+                "description": "ref invalid",
+                "data": { "foo": "string" },
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "remote ref, containing refs itself",
+        "schema": {"$ref": "http://json-schema.org/draft-04/schema#"},
+        "tests": [
+            {
+                "description": "remote ref valid",
+                "data": {"minLength": 1},
+                "valid": true
+            },
+            {
+                "description": "remote ref invalid",
+                "data": {"minLength": -1},
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "property named $ref that is not a reference",
+        "schema": {
+            "properties": {
+                "$ref": {"type": "string"}
+            }
+        },
+        "tests": [
+            {
+                "description": "property named $ref valid",
+                "data": {"$ref": "a"},
+                "valid": true
+            },
+            {
+                "description": "property named $ref invalid",
+                "data": {"$ref": 2},
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "Recursive references between schemas",
+        "schema": {
+            "id": "http://localhost:1234/tree",
+            "description": "tree of nodes",
+            "type": "object",
+            "properties": {
+                "meta": {"type": "string"},
+                "nodes": {
+                    "type": "array",
+                    "items": {"$ref": "node"}
+                }
+            },
+            "required": ["meta", "nodes"],
+            "definitions": {
+                "node": {
+                    "id": "http://localhost:1234/node",
+                    "description": "node",
+                    "type": "object",
+                    "properties": {
+                        "value": {"type": "number"},
+                        "subtree": {"$ref": "tree"}
+                    },
+                    "required": ["value"]
+                }
+            }
+        },
+        "tests": [
+            {
+                "description": "valid tree",
+                "data": { 
+                    "meta": "root",
+                    "nodes": [
+                        {
+                            "value": 1,
+                            "subtree": {
+                                "meta": "child",
+                                "nodes": [
+                                    {"value": 1.1},
+                                    {"value": 1.2}
+                                ]
+                            }
+                        },
+                        {
+                            "value": 2,
+                            "subtree": {
+                                "meta": "child",
+                                "nodes": [
+                                    {"value": 2.1},
+                                    {"value": 2.2}
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "valid": true
+            },
+            {
+                "description": "invalid tree",
+                "data": { 
+                    "meta": "root",
+                    "nodes": [
+                        {
+                            "value": 1,
+                            "subtree": {
+                                "meta": "child",
+                                "nodes": [
+                                    {"value": "string is invalid"},
+                                    {"value": 1.2}
+                                ]
+                            }
+                        },
+                        {
+                            "value": 2,
+                            "subtree": {
+                                "meta": "child",
+                                "nodes": [
+                                    {"value": 2.1},
+                                    {"value": 2.2}
+                                ]
+                            }
+                        }
+                    ]
+                },
                 "valid": false
             }
         ]
