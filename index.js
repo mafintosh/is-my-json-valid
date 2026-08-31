@@ -383,6 +383,9 @@ var compile = function(schema, cache, root, reporter, opts) {
 
       var i = genloop()
       validate('for (var %s = 0; %s < %s.length; %s++) {', i, i, name, i)
+      // Since undefined is not a valid JSON value, we coerce all undefined items in the array to null
+      // We do it like this to not have to mutate the original data
+      validate('if (%s === undefined) %s = %s.map(function (item) { return item === undefined ? null : item })', name+'['+i+']', name, name)
       visit(name+'['+i+']', node.items, reporter, filter, schemaPath.concat('items'))
       validate('}')
 
